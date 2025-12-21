@@ -1,21 +1,8 @@
-:root {
-    --bg0: #070912; /* deep space */
-    --bg1: #0b1022; /* panel */
-    --bg2: #0f1733; /* raised */
-    --text: #e6f0ff;
-    --muted: #a8b7d6;
-    --neon: #00fff0; /* cyan */
-    --neon2: #a855ff; /* violet */
-    --warn: #ffb000;
-    --ok: #39ff88;
-    --danger: #ff4d6d;
-    --stroke: rgba(255,255,255,.10);
-    --shadow: 0 10px 35px rgba(0,0,0,.55);
-    --radius: 18px;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-}
+/* =========================================================
+   AlienCyborgESPRadar — Full Neon Green Dark Theme (NO :root)
+   ========================================================= */
 
+/* Base reset */
 * {
     box-sizing: border-box;
 }
@@ -24,98 +11,156 @@ html, body {
     height: 100%;
 }
 
-    body.alien {
-        margin: 0;
-        font-family: var(--sans);
-        color: var(--text);
-        background: radial-gradient(1200px 600px at 15% -10%, rgba(0,255,240,.18), transparent 55%), radial-gradient(900px 500px at 95% 20%, rgba(168,85,255,.14), transparent 55%), radial-gradient(900px 600px at 40% 120%, rgba(255,176,0,.08), transparent 55%), linear-gradient(180deg, var(--bg0), #050612 55%, #03030a);
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ---------------------------------------------------------
+   Global background + typography
+--------------------------------------------------------- */
+body.alien {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    color: #eafff2;
+    /* Green-black space background */
+    background: radial-gradient(1400px 800px at 15% -10%, rgba(57,255,20,.30), transparent 55%), radial-gradient(1100px 700px at 85% 10%, rgba(0,255,136,.22), transparent 55%), radial-gradient(900px 600px at 50% 115%, rgba(57,255,20,.16), transparent 60%), linear-gradient(180deg, #010805, #000402 65%, #000201) !important;
+}
+
+    /* Stars overlay (low opacity, big tile to avoid “blocks”) */
+    body.alien::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: .09;
+        background-image: radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.9) 50%, transparent 51%), radial-gradient(1px 1px at 66% 22%, rgba(255,255,255,.8) 50%, transparent 51%), radial-gradient(1px 1px at 82% 74%, rgba(255,255,255,.7) 50%, transparent 51%), radial-gradient(1px 1px at 25% 77%, rgba(255,255,255,.6) 50%, transparent 51%), radial-gradient(1px 1px at 45% 52%, rgba(255,255,255,.5) 50%, transparent 51%);
+        background-size: 1200px 1200px;
     }
 
-        /* Subtle “star noise” overlay */
-        body.alien::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            opacity: .16;
-            background-image: radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.9) 50%, transparent 51%), radial-gradient(1px 1px at 66% 22%, rgba(255,255,255,.8) 50%, transparent 51%), radial-gradient(1px 1px at 82% 74%, rgba(255,255,255,.7) 50%, transparent 51%), radial-gradient(1px 1px at 25% 77%, rgba(255,255,255,.6) 50%, transparent 51%), radial-gradient(1px 1px at 45% 52%, rgba(255,255,255,.5) 50%, transparent 51%);
-            background-size: 600px 600px;
-        }
+    /* Scanlines overlay ONLY (no grid, no blend-mode to avoid squares) */
+    body.alien::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: .10;
+        background: repeating-linear-gradient( 180deg, rgba(57,255,20,.035) 0px, rgba(57,255,20,.035) 1px, transparent 2px, transparent 7px );
+        filter: blur(.2px);
+    }
 
-/* Layout */
+/* ---------------------------------------------------------
+   Layout helpers
+--------------------------------------------------------- */
 .container {
     max-width: 1100px;
     margin: 0 auto;
     padding: 18px;
 }
 
-.topbar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
+/* Make Bootstrap containers not introduce unexpected backgrounds */
+body.alien .container,
+body.alien main {
+    background: transparent !important;
+}
+
+/* ---------------------------------------------------------
+   Headings + text (force readable on dark theme)
+--------------------------------------------------------- */
+body.alien h1,
+body.alien h2,
+body.alien h3,
+body.alien .display-4,
+body.alien .text-body-emphasis {
+    color: #eafff2 !important;
+    text-shadow: 0 0 18px rgba(57,255,20,.20);
+}
+
+body.alien p,
+body.alien .lead,
+body.alien .text-secondary,
+body.alien .text-body-secondary,
+body.alien .text-muted {
+    color: rgba(234,255,242,.82) !important;
+}
+
+/* ---------------------------------------------------------
+   Navbar (dark + neon green)
+   IMPORTANT: in _Layout.cshtml use class="alien-nav"
+--------------------------------------------------------- */
+.alien-nav {
+    background: linear-gradient(180deg, rgba(2,10,6,.90), rgba(1,6,4,.75)) !important;
+    border-bottom: 1px solid rgba(57,255,20,.30) !important;
     backdrop-filter: blur(10px);
-    background: rgba(7,9,18,.60);
-    border-bottom: 1px solid var(--stroke);
+    box-shadow: 0 10px 30px rgba(0,0,0,.55);
 }
 
-    .topbar .container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
+    .alien-nav .navbar-brand {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif !important;
+        font-weight: 800 !important;
+        letter-spacing: .04em !important; /* was too big */
+        text-transform: none !important; 
+        font-size: 1.05rem !important;
+        color: rgba(234,255,242,.95) !important;
+        text-shadow: 0 0 14px rgba(57,255,20,.18) !important;
     }
 
-.brand {
-    text-decoration: none;
-    font-weight: 800;
-    letter-spacing: .06em;
-    color: var(--text);
-    text-transform: uppercase;
-}
+        .alien-nav .navbar-brand:hover {
+            color: #ffffff !important;
+        }
 
-    .brand::after {
-        content: "";
-        display: block;
-        height: 2px;
-        margin-top: 6px;
-        background: linear-gradient(90deg, var(--neon), transparent 70%);
-        opacity: .8;
+    .alien-nav .nav-link {
+        color: rgba(234,255,242,.86) !important;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: .45rem .75rem;
+        margin-right: .35rem;
     }
 
-.nav a {
-    color: rgba(230,240,255,.85);
-    text-decoration: none;
-    padding: 10px 12px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-}
+        .alien-nav .nav-link:hover {
+            color: #ffffff !important;
+            border-color: rgba(57,255,20,.45);
+            background: rgba(57,255,20,.10);
+            box-shadow: 0 0 0 1px rgba(57,255,20,.10), 0 0 24px rgba(57,255,20,.12);
+        }
 
-    .nav a:hover {
-        border-color: rgba(0,255,240,.25);
-        background: rgba(0,255,240,.06);
-        color: var(--text);
+        .alien-nav .nav-link.active {
+            color: #ffffff !important;
+            border-color: rgba(57,255,20,.65);
+            background: rgba(57,255,20,.14);
+        }
+
+    .alien-nav .navbar-toggler {
+        border-color: rgba(57,255,20,.40);
     }
 
-/* Headings + muted text */
-h1, h2, h3 {
-    margin: 0 0 10px;
-}
+        .alien-nav .navbar-toggler:focus {
+            box-shadow: 0 0 0 .2rem rgba(57,255,20,.15);
+        }
 
-p {
-    color: var(--muted);
-}
+    .alien-nav .navbar-toggler-icon {
+        filter: invert(1) grayscale(1);
+        opacity: .85;
+    }
 
-.small-muted {
-    color: var(--muted);
-    font-size: .9rem;
-}
-
-/* Alien cards */
+/* ---------------------------------------------------------
+   Cards (alien glass)
+--------------------------------------------------------- */
 .card {
-    background: radial-gradient(900px 300px at 10% 0%, rgba(0,255,240,.22), transparent 55%), radial-gradient(700px 300px at 90% 20%, rgba(168,85,255,.18), transparent 55%), rgba(18,28,60,.88); /* brighter base */
-    border: 1px solid rgba(0,255,240,.22);
-    box-shadow: 0 14px 45px rgba(0,0,0,.55);
+    background: rgba(2,8,5,.86) !important;
+    border: 1px solid rgba(57,255,20,.32) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 16px 55px rgba(0,0,0,.75), 0 0 34px rgba(57,255,20,.10) !important;
 }
+
+    .card:hover {
+        border-color: rgba(57,255,20,.55) !important;
+        box-shadow: 0 18px 65px rgba(0,0,0,.78), 0 0 40px rgba(57,255,20,.14) !important;
+    }
 
 .card-header {
     padding: 16px 16px 0;
@@ -125,129 +170,136 @@ p {
     padding: 16px;
 }
 
-/* Buttons */
-.btn {
+/* If you use Bootstrap bg-body-secondary anywhere (hero etc) */
+body.alien .bg-body-secondary {
+    background: rgba(3,10,6,.78) !important;
+    border: 1px solid rgba(57,255,20,.30) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 16px 55px rgba(0,0,0,.75), 0 0 35px rgba(57,255,20,.10) !important;
+}
+
+/* Radar card readability + HUD feel */
+.radar-card,
+.radar-card * {
+    color: rgba(234,255,242,.92) !important;
+}
+
+.radar-card {
+    background: rgba(6,16,10,.75) !important;
+    border: 1px solid rgba(57,255,20,.55) !important;
+    box-shadow: 0 0 0 1px rgba(57,255,20,.15), 0 0 34px rgba(57,255,20,.18) !important;
+}
+
+    .radar-card .small,
+    .radar-card .text-muted {
+        color: rgba(234,255,242,.78) !important;
+    }
+
+/* ---------------------------------------------------------
+   Buttons (neon green)
+--------------------------------------------------------- */
+.btn,
+.btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border-radius: 999px;
+    border-radius: 999px !important;
     padding: 10px 14px;
-    border: 1px solid rgba(0,255,240,.28);
-    background: rgba(0,255,240,.08);
-    color: var(--text);
-    text-decoration: none;
+    border: 1px solid rgba(57,255,20,.45) !important;
+    background: rgba(57,255,20,.12) !important;
+    color: rgba(234,255,242,.92) !important;
     cursor: pointer;
 }
 
-    .btn:hover {
-        background: rgba(0,255,240,.14);
-        border-color: rgba(0,255,240,.45);
+    .btn:hover,
+    .btn-primary:hover {
+        background: rgba(57,255,20,.18) !important;
+        border-color: rgba(57,255,20,.70) !important;
+        box-shadow: 0 0 0 1px rgba(57,255,20,.10), 0 0 28px rgba(57,255,20,.14) !important;
     }
 
 .btn-ghost {
-    border-color: var(--stroke);
-    background: rgba(255,255,255,.04);
+    border-color: rgba(57,255,20,.22) !important;
+    background: rgba(255,255,255,.04) !important;
 }
 
-/* Status badges */
+/* ---------------------------------------------------------
+   Badges (status indicators)
+--------------------------------------------------------- */
 .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-size: .82rem;
-    border: 1px solid var(--stroke);
-    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(57,255,20,.35) !important;
+    background: rgba(57,255,20,.08) !important;
+    color: rgba(234,255,242,.92) !important;
 }
 
-    .badge.ok {
-        border-color: rgba(57,255,136,.35);
-        background: rgba(57,255,136,.10);
-        color: #d9ffe8;
+    .badge.ok,
+    .badge.text-bg-success {
+        background: rgba(57,255,20,.16) !important;
+        border-color: rgba(57,255,20,.70) !important;
+        box-shadow: 0 0 18px rgba(57,255,20,.15);
     }
 
-    .badge.idle {
-        border-color: rgba(168,183,214,.25);
-        background: rgba(168,183,214,.07);
-        color: var(--muted);
+    .badge.idle,
+    .badge.text-bg-secondary {
+        background: rgba(210,255,228,.08) !important;
+        border-color: rgba(210,255,228,.20) !important;
+        color: rgba(210,255,228,.86) !important;
     }
 
-    .badge.warn {
-        border-color: rgba(255,176,0,.35);
-        background: rgba(255,176,0,.10);
-    }
-
-/* “Terminal” log look */
+/* ---------------------------------------------------------
+   Terminal / Activity log
+--------------------------------------------------------- */
 .terminal {
-    font-family: var(--mono);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: .92rem;
     line-height: 1.45;
-    border: 1px solid rgba(0,255,240,.22);
-    background: rgba(5,8,18,.75);
-    border-radius: var(--radius);
+    border: 1px solid rgba(57,255,20,.40) !important;
+    background: rgba(0,0,0,.70) !important;
+    border-radius: 18px !important;
     padding: 12px;
-    box-shadow: inset 0 0 0 1px rgba(168,85,255,.06);
+    box-shadow: inset 0 0 0 1px rgba(57,255,20,.10), 0 0 30px rgba(57,255,20,.10) !important;
+    color: rgba(234,255,242,.92) !important;
 }
-
-    .terminal .line {
-        color: rgba(230,240,255,.86);
-    }
-
-    .terminal .dim {
-        color: rgba(168,183,214,.75);
-    }
-
-/* Grid helper */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 14px;
-}
-
-/* Links */
-a {
-    color: var(--neon);
-}
-
-    a:hover {
-        color: #b7fffb;
-    }
 
 #log {
     max-height: 420px;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: .25rem;
+    color: rgba(234,255,242,.92) !important;
 }
 
     #log > div {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-    }
-/* Activity log readability */
-#log,
-.terminal {
-    color: rgba(230,240,255,.88);
-}
-
-    #log .dim,
-    .terminal .dim {
-        color: rgba(230,240,255,.65); /* still muted, but readable */
+        color: rgba(234,255,242,.92) !important;
+        text-shadow: 0 0 10px rgba(57,255,20,.06);
     }
 
-/* Bootstrap's text-muted is too dark for your theme */
-.text-muted {
-    color: rgba(230,240,255,.70) !important;
+/* ---------------------------------------------------------
+   Links
+--------------------------------------------------------- */
+body.alien a {
+    color: #39ff14 !important;
 }
 
-.radar-card,
-.radar-card * {
-    color: rgba(230,240,255,.92);
+    body.alien a:hover {
+        color: #b7fffb !important;
+    }
+
+/* ---------------------------------------------------------
+   Footer readability (Bootstrap footer often uses light defaults)
+--------------------------------------------------------- */
+body.alien footer,
+body.alien .footer {
+    color: rgba(234,255,242,.82) !important;
+    background: rgba(0,0,0,.25) !important;
+    border-top: 1px solid rgba(57,255,20,.20);
 }
 
-    .radar-card .small,
-    .radar-card .text-muted {
-        color: rgba(230,240,255,.75) !important;
+    body.alien footer a,
+    body.alien .footer a {
+        color: #39ff14 !important;
     }
