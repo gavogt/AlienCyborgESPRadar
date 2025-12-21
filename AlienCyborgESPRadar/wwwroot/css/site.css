@@ -214,6 +214,18 @@ a {
         color: #b7fffb;
     }
 
+#log {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: .25rem;
+}
+
+    #log > div {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 /* Activity log readability */
 #log,
 .terminal {
