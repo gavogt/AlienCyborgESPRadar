@@ -4,6 +4,8 @@ const clearBtn = document.getElementById("clearLog");
 
 const cards = new Map(); // nodeId -> elements
 
+const MAX_LOG_ENTRIES = 9;
+
 function upsertCard(evt) {
     if (!cards.has(evt.nodeId)) {
         const col = document.createElement("div");
@@ -41,11 +43,18 @@ function upsertCard(evt) {
 }
 
 function addLog(evt) {
-    const ts = Number(evt.tsMs);         
+    const ts = Number(evt.tsMs);
     const dt = new Date(ts).toLocaleTimeString();
+
     const line = document.createElement("div");
     line.textContent = `[${dt}] ${evt.nodeId}: ${evt.motion ? "Motion" : "Idle"}`;
+
     log.prepend(line);
+
+    // keep only the most recent 9
+    while (log.childElementCount > MAX_LOG_ENTRIES) {
+        log.removeChild(log.lastElementChild);
+    }
 }
 
 clearBtn?.addEventListener("click", () => (log.innerHTML = ""));

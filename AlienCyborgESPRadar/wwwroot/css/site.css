@@ -1,8 +1,9 @@
 /* =========================================================
-   AlienCyborgESPRadar — Full Neon Green Dark Theme (NO :root)
+   AlienCyborgESPRadar — CLEAN Neon Green Theme (NO :root)
+   Fixes: double-gradient banding + Firefox layout shift + log visibility
    ========================================================= */
 
-/* Base reset */
+/* ---------- Reset ---------- */
 * {
     box-sizing: border-box;
 }
@@ -11,107 +12,113 @@ html, body {
     height: 100%;
 }
 
+html {
+    background: #010805;
+}
+
 img {
     max-width: 100%;
     height: auto;
+    display: block;
 }
 
 a {
     text-decoration: none;
 }
 
-/* ---------------------------------------------------------
-   Global background + typography
---------------------------------------------------------- */
+/* ---------- Page shell (Razor layout friendly) ---------- */
 body.alien {
-    margin: 0;
+    margin: 0 !important;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     color: #eafff2;
-    /* Green-black space background */
-    background: radial-gradient(1400px 800px at 15% -10%, rgba(57,255,20,.30), transparent 55%), radial-gradient(1100px 700px at 85% 10%, rgba(0,255,136,.22), transparent 55%), radial-gradient(900px 600px at 50% 115%, rgba(57,255,20,.16), transparent 60%), linear-gradient(180deg, #010805, #000402 65%, #000201) !important;
+    /* Body is SOLID; gradients live only in fixed layers */
+    background: #010805 !important;
+    position: relative;
+    overflow-x: hidden;
 }
 
-    /* Stars overlay (low opacity, big tile to avoid “blocks”) */
+    /* ? KEY FIX (Firefox): in the default Razor template, <main> is inside a .container.
+   So the .container must be the flex-growing child, not main. */
+    body.alien > .container {
+        flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
+        background: transparent !important;
+    }
+
+        /* main grows inside the container */
+        body.alien > .container > main {
+            flex: 1 0 auto;
+            background: transparent !important;
+            padding-bottom: 28px; /* breathing room above footer */
+        }
+
+    /* Keep header/footer above background layers */
+    body.alien > header,
+    body.alien > footer,
+    body.alien > .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ---------- Fixed background layers (ONLY place the gradient lives) ---------- */
     body.alien::before {
         content: "";
         position: fixed;
         inset: 0;
         pointer-events: none;
-        opacity: .09;
-        background-image: radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.9) 50%, transparent 51%), radial-gradient(1px 1px at 66% 22%, rgba(255,255,255,.8) 50%, transparent 51%), radial-gradient(1px 1px at 82% 74%, rgba(255,255,255,.7) 50%, transparent 51%), radial-gradient(1px 1px at 25% 77%, rgba(255,255,255,.6) 50%, transparent 51%), radial-gradient(1px 1px at 45% 52%, rgba(255,255,255,.5) 50%, transparent 51%);
-        background-size: 1200px 1200px;
+        z-index: 0;
+        background: radial-gradient(1400px 800px at 15% -10%, rgba(57,255,20,.30), transparent 55%), radial-gradient(1100px 700px at 85% 10%, rgba(0,255,136,.22), transparent 55%), radial-gradient(1200px 900px at 50% 120%, rgba(57,255,20,.14), transparent 65%), linear-gradient(180deg, #010805, #000402 60%, #000201);
+        background-repeat: no-repeat;
+        background-size: cover; /* prevents tiling/banding seams */
     }
 
-    /* Scanlines overlay ONLY (no grid, no blend-mode to avoid squares) */
     body.alien::after {
         content: "";
         position: fixed;
         inset: 0;
         pointer-events: none;
-        opacity: .10;
-        background: repeating-linear-gradient( 180deg, rgba(57,255,20,.035) 0px, rgba(57,255,20,.035) 1px, transparent 2px, transparent 7px );
-        filter: blur(.2px);
+        z-index: 0;
+        background-image: radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.75) 55%, transparent 56%), radial-gradient(1px 1px at 66% 22%, rgba(255,255,255,.55) 55%, transparent 56%), radial-gradient(1px 1px at 82% 74%, rgba(255,255,255,.45) 55%, transparent 56%), radial-gradient(1px 1px at 25% 77%, rgba(255,255,255,.40) 55%, transparent 56%), radial-gradient(1px 1px at 45% 52%, rgba(255,255,255,.35) 55%, transparent 56%), repeating-linear-gradient( 180deg, rgba(57,255,20,.030) 0px, rgba(57,255,20,.030) 1px, transparent 2px, transparent 7px );
+        background-repeat: repeat, repeat, repeat, repeat, repeat, repeat;
+        background-size: 1800px 1800px, 2400px 2400px, 3200px 3200px, 2600px 2600px, 2100px 2100px, auto;
+        background-position: 0 0, 400px 900px, 900px 200px, 1200px 1400px, 700px 600px, 0 0;
+        opacity: .12;
     }
 
-/* ---------------------------------------------------------
-   Layout helpers
---------------------------------------------------------- */
-.container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 18px;
-}
+    /* ---------- Typography ---------- */
+    body.alien h1, body.alien h2, body.alien h3,
+    body.alien .display-4, body.alien .display-5, body.alien .display-6 {
+        color: #eafff2 !important;
+        text-shadow: 0 0 18px rgba(57,255,20,.18);
+    }
 
-/* Make Bootstrap containers not introduce unexpected backgrounds */
-body.alien .container,
-body.alien main {
-    background: transparent !important;
-}
+    body.alien p,
+    body.alien .lead,
+    body.alien .text-muted,
+    body.alien .text-secondary,
+    body.alien .text-body-secondary {
+        color: rgba(234,255,242,.84) !important;
+    }
 
-/* ---------------------------------------------------------
-   Headings + text (force readable on dark theme)
---------------------------------------------------------- */
-body.alien h1,
-body.alien h2,
-body.alien h3,
-body.alien .display-4,
-body.alien .text-body-emphasis {
-    color: #eafff2 !important;
-    text-shadow: 0 0 18px rgba(57,255,20,.20);
-}
-
-body.alien p,
-body.alien .lead,
-body.alien .text-secondary,
-body.alien .text-body-secondary,
-body.alien .text-muted {
-    color: rgba(234,255,242,.82) !important;
-}
-
-/* ---------------------------------------------------------
-   Navbar (dark + neon green)
-   IMPORTANT: in _Layout.cshtml use class="alien-nav"
---------------------------------------------------------- */
+/* ---------- Navbar (nav must have class="alien-nav") ---------- */
 .alien-nav {
-    background: linear-gradient(180deg, rgba(2,10,6,.90), rgba(1,6,4,.75)) !important;
-    border-bottom: 1px solid rgba(57,255,20,.30) !important;
+    background: linear-gradient(180deg, rgba(2,10,6,.92), rgba(1,6,4,.78)) !important;
+    border-bottom: 1px solid rgba(57,255,20,.32) !important;
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 30px rgba(0,0,0,.55);
 }
 
     .alien-nav .navbar-brand {
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif !important;
-        font-weight: 800 !important;
-        letter-spacing: .04em !important; /* was too big */
-        text-transform: none !important; 
-        font-size: 1.05rem !important;
+        font-weight: 750 !important;
+        letter-spacing: .02em !important;
+        text-transform: none !important;
         color: rgba(234,255,242,.95) !important;
         text-shadow: 0 0 14px rgba(57,255,20,.18) !important;
     }
-
-        .alien-nav .navbar-brand:hover {
-            color: #ffffff !important;
-        }
 
     .alien-nav .nav-link {
         color: rgba(234,255,242,.86) !important;
@@ -122,16 +129,10 @@ body.alien .text-muted {
     }
 
         .alien-nav .nav-link:hover {
-            color: #ffffff !important;
-            border-color: rgba(57,255,20,.45);
-            background: rgba(57,255,20,.10);
+            color: #fff !important;
+            border-color: rgba(57,255,20,.50);
+            background: rgba(57,255,20,.12);
             box-shadow: 0 0 0 1px rgba(57,255,20,.10), 0 0 24px rgba(57,255,20,.12);
-        }
-
-        .alien-nav .nav-link.active {
-            color: #ffffff !important;
-            border-color: rgba(57,255,20,.65);
-            background: rgba(57,255,20,.14);
         }
 
     .alien-nav .navbar-toggler {
@@ -147,9 +148,7 @@ body.alien .text-muted {
         opacity: .85;
     }
 
-/* ---------------------------------------------------------
-   Cards (alien glass)
---------------------------------------------------------- */
+/* ---------- Cards / panels ---------- */
 .card {
     background: rgba(2,8,5,.86) !important;
     border: 1px solid rgba(57,255,20,.32) !important;
@@ -157,99 +156,40 @@ body.alien .text-muted {
     box-shadow: 0 16px 55px rgba(0,0,0,.75), 0 0 34px rgba(57,255,20,.10) !important;
 }
 
-    .card:hover {
-        border-color: rgba(57,255,20,.55) !important;
-        box-shadow: 0 18px 65px rgba(0,0,0,.78), 0 0 40px rgba(57,255,20,.14) !important;
-    }
-
-.card-header {
-    padding: 16px 16px 0;
-}
-
-.card-body {
-    padding: 16px;
-}
-
-/* If you use Bootstrap bg-body-secondary anywhere (hero etc) */
 body.alien .bg-body-secondary {
     background: rgba(3,10,6,.78) !important;
     border: 1px solid rgba(57,255,20,.30) !important;
     border-radius: 18px !important;
-    box-shadow: 0 16px 55px rgba(0,0,0,.75), 0 0 35px rgba(57,255,20,.10) !important;
 }
 
-/* Radar card readability + HUD feel */
-.radar-card,
-.radar-card * {
-    color: rgba(234,255,242,.92) !important;
-}
-
+/* ---------- Radar mini-card ---------- */
 .radar-card {
-    background: rgba(6,16,10,.75) !important;
+    background: rgba(6,16,10,.78) !important;
     border: 1px solid rgba(57,255,20,.55) !important;
+    border-radius: 18px !important;
     box-shadow: 0 0 0 1px rgba(57,255,20,.15), 0 0 34px rgba(57,255,20,.18) !important;
 }
 
-    .radar-card .small,
-    .radar-card .text-muted {
-        color: rgba(234,255,242,.78) !important;
+    .radar-card, .radar-card * {
+        color: rgba(234,255,242,.92) !important;
     }
 
-/* ---------------------------------------------------------
-   Buttons (neon green)
---------------------------------------------------------- */
-.btn,
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+/* ---------- Buttons ---------- */
+.btn, .btn-primary {
     border-radius: 999px !important;
-    padding: 10px 14px;
     border: 1px solid rgba(57,255,20,.45) !important;
     background: rgba(57,255,20,.12) !important;
     color: rgba(234,255,242,.92) !important;
-    cursor: pointer;
 }
 
-    .btn:hover,
-    .btn-primary:hover {
+    .btn:hover, .btn-primary:hover {
         background: rgba(57,255,20,.18) !important;
         border-color: rgba(57,255,20,.70) !important;
         box-shadow: 0 0 0 1px rgba(57,255,20,.10), 0 0 28px rgba(57,255,20,.14) !important;
     }
 
-.btn-ghost {
-    border-color: rgba(57,255,20,.22) !important;
-    background: rgba(255,255,255,.04) !important;
-}
-
-/* ---------------------------------------------------------
-   Badges (status indicators)
---------------------------------------------------------- */
-.badge {
-    border: 1px solid rgba(57,255,20,.35) !important;
-    background: rgba(57,255,20,.08) !important;
-    color: rgba(234,255,242,.92) !important;
-}
-
-    .badge.ok,
-    .badge.text-bg-success {
-        background: rgba(57,255,20,.16) !important;
-        border-color: rgba(57,255,20,.70) !important;
-        box-shadow: 0 0 18px rgba(57,255,20,.15);
-    }
-
-    .badge.idle,
-    .badge.text-bg-secondary {
-        background: rgba(210,255,228,.08) !important;
-        border-color: rgba(210,255,228,.20) !important;
-        color: rgba(210,255,228,.86) !important;
-    }
-
-/* ---------------------------------------------------------
-   Terminal / Activity log
---------------------------------------------------------- */
+/* ---------- Terminal / Activity log ---------- */
+/* ? KEY FIX (Firefox): reserve height so footer doesn’t “jump” when log fills */
 .terminal {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: .92rem;
@@ -258,29 +198,52 @@ body.alien .bg-body-secondary {
     background: rgba(0,0,0,.70) !important;
     border-radius: 18px !important;
     padding: 12px;
-    box-shadow: inset 0 0 0 1px rgba(57,255,20,.10), 0 0 30px rgba(57,255,20,.10) !important;
     color: rgba(234,255,242,.92) !important;
-}
-
-#log {
-    max-height: 420px;
+    min-height: 260px; /* prevents “footer takes half page then snaps” */
+    max-height: clamp(260px, 45vh, 560px);
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: .25rem;
-    color: rgba(234,255,242,.92) !important;
 }
+
+/* #log should be content only (Bootstrap text-muted can hide it) */
+#log {
+    height: auto !important;
+    overflow: visible !important;
+    padding-right: .25rem;
+    color: rgba(234,255,242,.90) !important;
+}
+
+    #log * {
+        color: rgba(234,255,242,.90) !important;
+    }
 
     #log > div {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        color: rgba(234,255,242,.92) !important;
-        text-shadow: 0 0 10px rgba(57,255,20,.06);
+        max-width: 100%;
     }
 
-/* ---------------------------------------------------------
-   Links
---------------------------------------------------------- */
+/* Optional nicer scrollbars */
+.terminal::-webkit-scrollbar {
+    width: 10px;
+}
+
+.terminal::-webkit-scrollbar-track {
+    background: rgba(255,255,255,.06);
+    border-radius: 999px;
+}
+
+.terminal::-webkit-scrollbar-thumb {
+    background: rgba(57,255,20,.35);
+    border-radius: 999px;
+}
+
+    .terminal::-webkit-scrollbar-thumb:hover {
+        background: rgba(57,255,20,.55);
+    }
+
+/* ---------- Links ---------- */
 body.alien a {
     color: #39ff14 !important;
 }
@@ -289,17 +252,57 @@ body.alien a {
         color: #b7fffb !important;
     }
 
-/* ---------------------------------------------------------
-   Footer readability (Bootstrap footer often uses light defaults)
---------------------------------------------------------- */
+/* ---------- Footer (force slim immediately) ---------- */
 body.alien footer,
 body.alien .footer {
+    position: static !important;
+    flex-shrink: 0;
+    /* keep it slim */
+    padding: .75rem 0 !important;
+    line-height: 1.25 !important;
+    height: auto !important;
     color: rgba(234,255,242,.82) !important;
     background: rgba(0,0,0,.25) !important;
-    border-top: 1px solid rgba(57,255,20,.20);
+    border-top: 1px solid rgba(57,255,20,.20) !important;
+    white-space: normal !important; /* overrides template nowrap */
 }
 
-    body.alien footer a,
-    body.alien .footer a {
-        color: #39ff14 !important;
+/* ---------- Alien hero ---------- */
+.alien-hero {
+    display: grid;
+    grid-template-columns: 1.6fr .9fr;
+    gap: 18px;
+    align-items: center;
+    background: radial-gradient(900px 320px at 10% 0%, rgba(57,255,20,.18), transparent 60%), radial-gradient(700px 320px at 95% 20%, rgba(0,255,136,.12), transparent 60%), rgba(2,10,6,.72);
+    border: 1px solid rgba(57,255,20,.35);
+    border-radius: 18px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.75), 0 0 40px rgba(57,255,20,.10);
+    backdrop-filter: blur(10px);
+}
+
+.alien-hero__sub {
+    color: rgba(234,255,242,.84) !important;
+}
+
+.alien-hero__art {
+    justify-self: end;
+    width: min(320px, 100%);
+    filter: drop-shadow(0 0 22px rgba(57,255,20,.18));
+}
+
+    .alien-hero__art img {
+        border-radius: 14px;
+        border: 1px solid rgba(57,255,20,.22);
+        background: rgba(0,0,0,.25);
     }
+
+@media (max-width: 768px) {
+    .alien-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .alien-hero__art {
+        justify-self: start;
+        max-width: 260px;
+    }
+}
