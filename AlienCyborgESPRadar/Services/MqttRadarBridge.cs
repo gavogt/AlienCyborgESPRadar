@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
 using System.Text;
@@ -13,18 +14,19 @@ public sealed class MqttRadarBridge : BackgroundService
     private readonly IHubContext<RadarHub> _hub;
     private IMqttClient? _client;
 
-    // TODO: move these to appsettings.json
-    private const string BrokerHost = "192.168.x.xxx";
-    private const int BrokerPort = 1883;
+    private readonly MqttOptions _mqtt;
 
     // Subscribe to one node:
     private const string Topic = "/RADR-uno-1";
   
-    public MqttRadarBridge(ILogger<MqttRadarBridge> logger, IHubContext<RadarHub> hub)
+    public MqttRadarBridge(ILogger<MqttRadarBridge> logger, IHubContext<RadarHub> hub, IOptions<MqttOptions> opt)
     {
         _logger = logger;
         _hub = hub;
+        _mqtt = opt.Value;
+
     }
+
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -98,13 +100,13 @@ public sealed class MqttRadarBridge : BackgroundService
         if (_client is null) return;
 
         var options = new MqttClientOptionsBuilder()
-            .WithTcpServer(BrokerHost, BrokerPort)
+            .WithTcpServer(_mqtt.Host, _mqtt.Port)
             // .WithCredentials("user","pass") // if enabled auth in mosquitto
             .WithClientId("aspnet-radar-bridge")
             .WithCleanSession()
             .Build();
 
-        _logger.LogInformation("Connecting to MQTT broker {Host}:{Port} ...", BrokerHost, BrokerPort);
+        _logger.LogInformation("Connecting to MQTT broker {Host}:{Port} ...", _mqtt.Host, _mqtt.Port);
         await _client.ConnectAsync(options, ct);
 
         _logger.LogInformation("Subscribing to {Topic}", Topic);

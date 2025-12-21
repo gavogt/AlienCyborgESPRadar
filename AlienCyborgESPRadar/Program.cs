@@ -1,5 +1,6 @@
 using AlienCyborgESPRadar;
 using Microsoft.AspNetCore.SignalR;
+using MQTTnet.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<MqttRadarBridge>();
+builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("Mqtt"));
 
 var app = builder.Build();
 
