@@ -1,0 +1,38 @@
+﻿@page
+@model Dashboard
+@{
+
+    Layout = "_Layout";
+    ViewData["Title"] = "Home page";
+}
+
+<section class="py-5">
+    <div class="container">
+        <div class="alien-hero rounded-4 p-4 p-md-5 shadow-sm">
+            <div class="alien-hero__content">
+                <h1 class="display-6 mb-2">Radar Dashboard</h1>
+                <p class="mb-0 alien-hero__sub">Live motion events from your RCWL nodes.</p>
+            </div>
+
+            <div class="alien-hero__art" aria-hidden="true">
+                <img src="~/images/alien-hud.jpg" alt="Alien HUD" />
+            </div>
+        </div>
+        <div class="row g-3 mt-3" id="radarGrid">
+            <!-- Cards inserted by JS -->
+        </div>
+    </div>
+
+    <div class="mt-4 p-3 rounded-4 border terminal">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="h5 mb-0">Activity</h2>
+            <button class="btn btn-sm btn-outline-secondary" id="clearLog">Clear</button>
+        </div>
+        <div class="mt-2" id="log"></div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script src="~/js/radar.js"></script>
+}

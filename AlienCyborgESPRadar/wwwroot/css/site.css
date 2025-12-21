@@ -306,3 +306,30 @@ body.alien .footer {
         max-width: 260px;
     }
 }
+
+/* Splash */
+/* Center everything on splash page */
+.splash-center {
+    min-height: calc(100vh - 2rem); /* give it room */
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+
+/* The alien head image */
+.splash-alien {
+    width: min(280px, 70vw);
+    height: auto;
+    display: block;
+    margin: 0 auto 14px;
+    filter: drop-shadow(0 0 22px rgba(57,255,20,.25));
+}
+
+/* Optional text styling */
+.splash-text {
+    background: rgba(2,8,5,.65);
+    border: 1px solid rgba(57,255,20,.30);
+    border-radius: 18px;
+    padding: 14px 18px;
+    display: inline-block;
+}
