@@ -112,10 +112,9 @@ p {
 
 /* Alien cards */
 .card {
-    border: 1px solid var(--stroke);
-    border-radius: var(--radius);
-    background: radial-gradient(900px 300px at 10% 0%, rgba(0,255,240,.12), transparent 55%), radial-gradient(700px 300px at 90% 20%, rgba(168,85,255,.10), transparent 55%), rgba(11,16,34,.75);
-    box-shadow: var(--shadow);
+    background: radial-gradient(900px 300px at 10% 0%, rgba(0,255,240,.22), transparent 55%), radial-gradient(700px 300px at 90% 20%, rgba(168,85,255,.18), transparent 55%), rgba(18,28,60,.88); /* brighter base */
+    border: 1px solid rgba(0,255,240,.22);
+    box-shadow: 0 14px 45px rgba(0,0,0,.55);
 }
 
 .card-header {
@@ -213,4 +212,30 @@ a {
 
     a:hover {
         color: #b7fffb;
+    }
+
+/* Activity log readability */
+#log,
+.terminal {
+    color: rgba(230,240,255,.88);
+}
+
+    #log .dim,
+    .terminal .dim {
+        color: rgba(230,240,255,.65); /* still muted, but readable */
+    }
+
+/* Bootstrap's text-muted is too dark for your theme */
+.text-muted {
+    color: rgba(230,240,255,.70) !important;
+}
+
+.radar-card,
+.radar-card * {
+    color: rgba(230,240,255,.92);
+}
+
+    .radar-card .small,
+    .radar-card .text-muted {
+        color: rgba(230,240,255,.75) !important;
     }
