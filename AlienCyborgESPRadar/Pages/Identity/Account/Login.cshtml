@@ -1,1 +1,83 @@
 ﻿@page
+@model LoginModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Log in";
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+
+}
+
+<section class="auth-wrap py-5">
+    <div class="container">
+        <div class="auth-card">
+
+            <aside class="auth-side">
+                <div class="auth-logo">
+                    <img src="~/images/alien-logo.jpg" alt="Alien Cyborg Logo" asp-append-version="true" />
+                </div>
+
+                <h1 class="auth-title">Welcome back</h1>
+                <p class="auth-sub">
+                    Log in to monitor your dara nodes and view live activities
+                </p>
+
+                <ul class="auth-bullets">
+                    <li>Live motion events</li>
+                    <li>Node status and last-seen</li>
+                    <li>Secure access</li>
+                </ul>
+            </aside>
+
+
+            <main class="auth-main">
+                <h2 class="auth-form-title">Log in</h2>
+                <form method="post" class="auth-form">
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+                    <div class="auth-field">
+                        <label asp-for="Input.Email" class="form-label">Email</label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="on" />
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="auth-field">
+                        <label asp-for="Input.Password" class="form-label">Password</label>
+                        <input asp-for="Input.Password" class="form-control" autocomplete="on" />
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="auth-row">
+                        <label class="auth-check">
+                            <input asp-for="Input.RememberMe" />
+                            <span>Remember me</span>
+                        </label>
+
+                        <a class="auth-link" asp-page="./ForgotPassword">Forgot your password?</a>
+
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 auth-btn">
+                        Log in
+                    </button>
+
+                    <div class="auth-divier">
+                        <span>or</span>
+                    </div>
+
+
+                    <a class="btn btn-outline-light w-100" asp-page="./SignUp">
+                        Create an account
+                    </a>
+
+                </form>
+            </main>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
