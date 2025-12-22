@@ -153,3 +153,42 @@
         max-width: 560px;
     }
 }
+
+/* Login logo: centered + larger + readable on neon dark */
+.login-brand {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.login-logo-wrap {
+    width: 120px; /* bigger */
+    height: 120px;
+    border-radius: 22px;
+    display: grid;
+    place-items: center;
+    /* “glass badge” so the logo pops */
+    background: rgba(0,0,0,.38);
+    border: 1px solid rgba(57,255,20,.28);
+    box-shadow: 0 18px 50px rgba(0,0,0,.55), 0 0 32px rgba(57,255,20,.10);
+    backdrop-filter: blur(10px);
+}
+
+.login-logo {
+    width: 86px; /* controls actual logo size inside badge */
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 0 18px rgba(57,255,20,.18));
+}
+
+/* Mobile: slightly smaller so it doesn’t crowd */
+@media (max-width: 768px) {
+    .login-logo-wrap {
+        width: 104px;
+        height: 104px;
+    }
+
+    .login-logo {
+        width: 74px;
+    }
+}
