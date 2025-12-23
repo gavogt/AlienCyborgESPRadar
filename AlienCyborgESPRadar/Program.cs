@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using MQTTnet.Client;
 using Microsoft.EntityFrameworkCore;
 using AlienCyborgESPRadar.Data;
+using AlienCyborgESPRadar.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +19,29 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AuthDbContext>()
 .AddDefaultTokenProviders();
 
+// Register LLM
+builder.Services.AddHttpClient<LmStudioClient>(http =>
+{
+    http.BaseAddress = new Uri("http://localhost:1234/v1/");
+    http.Timeout = TimeSpan.FromSeconds(120);
+});
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<MqttRadarBridge>();
 builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("Mqtt"));
+
+// Register Ai Agents
+builder.Services.AddScoped<IAgent, SummarizerAgent>();
+builder.Services.AddScoped<IAgent, ActionAgent>();
+builder.Services.AddScoped<IAgent, AnomalyAgent>();
+
+// Register Ai Agent Orchestrator
+builder.Services.AddScoped<RadarAnalysisOrchestrator>();
+
+// Register Ai background worker
+builder.Services.AddHostedService<RadarAnalysisWorker>();
 
 var app = builder.Build();
 

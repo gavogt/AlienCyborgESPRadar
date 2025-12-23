@@ -1,5 +1,5 @@
 ﻿@page
-@model Dashboard
+@model DashboardModel
 @{
 
     Layout = "_Layout";
@@ -29,6 +29,32 @@
             <button class="btn btn-sm btn-outline-secondary" id="clearLog">Clear</button>
         </div>
         <div class="mt-2" id="log"></div>
+    </div>
+
+    <div class="container">
+        <div class="row g-3 mt-3">
+            <div class="col-12 col-lg-6">
+                <div class="card p-4 h-100">
+                    <h2 class="h5 mb-2">LLM Summary</h2>
+                    <p class="mb-0">@Model.Summary</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="card p-4 h-100">
+                    <h2 class="h5 mb-2">Recommended Actions</h2>
+                    <pre class="mb-0 terminal" style="min-height: 140px; max-height: 260px;">@Model.Actions</pre>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card p-4">
+                    <h2 class="h5 mb-2">Anomalies</h2>
+                    <pre class="mb-0 terminal" style="min-height: 140px; max-height: 260px;">@Model.AnomaliesJson</pre>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 </section>
 
