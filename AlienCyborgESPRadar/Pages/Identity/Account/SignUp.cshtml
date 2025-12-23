@@ -1,1 +1,81 @@
 ﻿@page
+@model SignUpModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Sign up";
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+}
+
+<section class="auth-wrap py-5">
+    <div class="container">
+        <div class="auth-card">
+
+            <aside class="auth-side">
+                <div class="login-brand">
+                    <div class="login-logo-wrap">
+                        <img class="login-logo"
+                             src="~/images/alien-logo.jpg"
+                             alt="AlienCyborgESPRadar" />
+                    </div>
+                </div>
+
+                <h1 class="auth-title">Join the Radar Grid</h1>
+                <p class="auth-sub">
+                    Create your account to start monitoring nodes and viewing real-time activity.
+                </p>
+
+                <ul class="auth-bullets">
+                    <li>Live motion events</li>
+                    <li>Node status and last-seen</li>
+                    <li>Secure access</li>
+                </ul>
+            </aside>
+
+            <main class="auth-main">
+                <h2 class="auth-form-title">Sign up</h2>
+
+                <form method="post" class="auth-form">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+
+                    <div class="auth-field">
+                        <label asp-for="Input.Email" class="form-label">Email</label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="email" />
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="auth-field">
+                        <label asp-for="Input.Password" class="form-label">Password</label>
+                        <input asp-for="Input.Password" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="auth-field">
+                        <label asp-for="Input.ConfirmPassword" class="form-label">Confirm password</label>
+                        <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 auth-btn">
+                        Create account
+                    </button>
+
+                    <div class="auth-divier">
+                        <span>or</span>
+                    </div>
+
+                    <a class="btn btn-outline-light w-100" asp-page="./Login">
+                        Already have an account? Log in
+                    </a>
+                </form>
+            </main>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

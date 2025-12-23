@@ -10,5 +10,8 @@
     "Port": 1883,
     "Topic": "/#"
   },
+  "ConnectionStrings": {
+    "AuthConnection": "Server=(localdb)\\mssqllocaldb;Database=TheAuthDb;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
   "AllowedHosts": "*"
 }
