@@ -14,10 +14,11 @@ namespace AlienCyborgESPRadar
 
         public Task<string> RunAsync(string input, CancellationToken ct)
             => _llm.ChatAsync(
-                model: "qwen/qwen3-coder-30b",
+                model: "openai/gpt-oss-20b",
                 messages: new[]
                 {
-                    ("system", "You summarize radar motion logs. Output: short summary + key stats. Be concise."),
+                    ("system", "You summarize radar motion logs. Output: short summary + key stats. Be concise. Please " +
+                    "provide the output as a tiny structured format instead of markdown"),
                     ("user", input)
                 },
                 ct: ct);

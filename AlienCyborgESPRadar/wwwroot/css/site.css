@@ -344,3 +344,7 @@ body.alien .footer {
     overflow-y: auto; /* scroll vertically */
     overflow-x: hidden; /* no sideways scroll */
 }
+
+.llm-summary {
+    white-space: pre-line; /* shows \n as line breaks */
+}

@@ -14,7 +14,7 @@ namespace AlienCyborgESPRadar
 
         public Task<string> RunAsync(string input, CancellationToken ct)
             => _llm.ChatAsync(
-                model: "qwen/qwen3-coder-30b",
+                model: "openai/gpt-oss-20b",
                 messages: new[]
                 {
                     ("system", "Detect anomalies in radar logs (spikes, repeats, odd timing, likely false positives). Output JSON with fields: severity, anomalies[], notes."),
