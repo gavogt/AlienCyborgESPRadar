@@ -1,20 +1,26 @@
-﻿using AlienCyborgESPRadar.Services;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using AlienCyborgESPRadar.Services;
 
 namespace AlienCyborgESPRadar
 {
-    public class ActionAgent(LmStudioClient llm) : IAgent
+    public class ActionAgent : IAgent
     {
+        private readonly LmStudioClient _llm;
+
+        public ActionAgent(LmStudioClient llm) => _llm = llm;
+
         public string Name => "ActionAdvisor";
 
         public Task<string> RunAsync(string input, CancellationToken ct)
-        => llm.ChatAsync(
-            model: "your-model-name-here",
-            messages: new[]
-            {
-                ("system", "Based on radar logs, suggest actions to improve detection accuracy and reduce false positives. Output JSON with fields: recommended_actions[], priority, notes."),
-                ("user", input)
-            },
-            ct: ct);
+            => _llm.ChatAsync(
+                model: "qwen/qwen3-coder-30b",
+                messages: new[]
+                {
+                    ("system", "Based on radar logs, suggest actions to improve detection accuracy and reduce false positives. Output JSON with fields: recommended_actions[], priority, notes."),
+                    ("user", input)
+                },
+                ct: ct);
 
     }
 }

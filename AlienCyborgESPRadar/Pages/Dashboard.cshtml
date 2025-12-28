@@ -1,13 +1,13 @@
 ﻿@page
 @model DashboardModel
 @{
-
     Layout = "_Layout";
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Radar Dashboard";
 }
 
 <section class="py-5">
     <div class="container">
+
         <div class="alien-hero rounded-4 p-4 p-md-5 shadow-sm">
             <div class="alien-hero__content">
                 <h1 class="display-6 mb-2">Radar Dashboard</h1>
@@ -18,47 +18,59 @@
                 <img src="~/images/alien-hud.jpg" alt="Alien HUD" />
             </div>
         </div>
+
         <div class="row g-3 mt-3" id="radarGrid">
             <!-- Cards inserted by JS -->
         </div>
-    </div>
 
-    <div class="mt-4 p-3 rounded-4 border terminal">
-        <div class="d-flex align-items-center justify-content-between">
-            <h2 class="h5 mb-0">Activity</h2>
-            <button class="btn btn-sm btn-outline-secondary" id="clearLog">Clear</button>
+        <div class="mt-4 p-3 rounded-4 border terminal">
+            <div class="d-flex align-items-center justify-content-between">
+                <h2 class="h5 mb-0">Activity</h2>
+                <button class="btn btn-sm btn-outline-secondary" id="clearLog">Clear</button>
+            </div>
+            <div class="mt-2" id="log"></div>
         </div>
-        <div class="mt-2" id="log"></div>
-    </div>
 
-    <div class="container">
         <div class="row g-3 mt-3">
             <div class="col-12 col-lg-6">
                 <div class="card p-4 h-100">
                     <h2 class="h5 mb-2">LLM Summary</h2>
-                    <p class="mb-0">@Model.Summary</p>
+                    <p class="mb-0" id="llmSummary">@Model.Summary</p>
                 </div>
             </div>
 
             <div class="col-12 col-lg-6">
                 <div class="card p-4 h-100">
                     <h2 class="h5 mb-2">Recommended Actions</h2>
-                    <pre class="mb-0 terminal" style="min-height: 140px; max-height: 260px;">@Model.Actions</pre>
+                    <pre class="mb-0 terminal" id="llmActions" style="min-height:140px;max-height:260px;">@Model.Actions</pre>
                 </div>
             </div>
 
             <div class="col-12">
                 <div class="card p-4">
                     <h2 class="h5 mb-2">Anomalies</h2>
-                    <pre class="mb-0 terminal" style="min-height: 140px; max-height: 260px;">@Model.AnomaliesJson</pre>
+                    <pre class="mb-0 terminal" id="llmAnoms" style="min-height:140px;max-height:260px;">@Model.AnomaliesJson</pre>
                 </div>
             </div>
+
+            <button id="runAnalysis" class="btn btn-sm btn-primary">Run Analysis</button>
         </div>
-    </div>
+
     </div>
 </section>
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script src="~/js/radar.js"></script>
+    <script>
+        document.getElementById('runAnalysis').addEventListener('click', async () => {
+          const res = await fetch('/Dashboard?handler=Analyze', { method: 'GET' });
+          const data = await res.json();
+
+          document.getElementById('llmSummary').textContent = data.summary ?? '';
+          document.getElementById('llmActions').textContent = data.actions ?? '';
+          document.getElementById('llmAnoms').textContent = data.anomaliesJson ?? '';
+        });
+    </script>
+
 }

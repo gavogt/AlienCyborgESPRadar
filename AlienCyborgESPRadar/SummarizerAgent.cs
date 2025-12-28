@@ -1,17 +1,25 @@
-﻿using AlienCyborgESPRadar;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using AlienCyborgESPRadar.Services;
 
-public sealed class SummarizerAgent(LmStudioClient llm) : IAgent
+namespace AlienCyborgESPRadar
 {
-    public string Name => "Summarizer";
+    public sealed class SummarizerAgent : IAgent
+    {
+        private readonly LmStudioClient _llm;
 
-    public Task<string> RunAsync(string input, CancellationToken ct)
-        => llm.ChatAsync(
-            model: "your-model-name-here",
-            messages: new[]
-            {
-                ("system", "You summarize radar motion logs. Output: short summary + key stats. Be concise."),
-                ("user", input)
-            },
-            ct: ct);
+        public SummarizerAgent(LmStudioClient llm) => _llm = llm;
+
+        public string Name => "Summarizer";
+
+        public Task<string> RunAsync(string input, CancellationToken ct)
+            => _llm.ChatAsync(
+                model: "qwen/qwen3-coder-30b",
+                messages: new[]
+                {
+                    ("system", "You summarize radar motion logs. Output: short summary + key stats. Be concise."),
+                    ("user", input)
+                },
+                ct: ct);
+    }
 }

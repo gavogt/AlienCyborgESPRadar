@@ -12,6 +12,10 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AuthConnection"))
     );
 
+builder.Services.AddDbContext<RadarDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("RadarConnection"))
+    );
+
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -23,13 +27,15 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 builder.Services.AddHttpClient<LmStudioClient>(http =>
 {
     http.BaseAddress = new Uri("http://localhost:1234/v1/");
-    http.Timeout = TimeSpan.FromSeconds(120);
+    http.Timeout = TimeSpan.FromSeconds(20);
 });
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<MqttRadarBridge>();
+// Bridge MQTT -> RabbitMQ for ingestion of radar events
+builder.Services.AddHostedService<IngestWorker>();
 builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("Mqtt"));
 
 // Register Ai Agents
@@ -42,6 +48,9 @@ builder.Services.AddScoped<RadarAnalysisOrchestrator>();
 
 // Register Ai background worker
 builder.Services.AddHostedService<RadarAnalysisWorker>();
+
+// Register Persist background worker
+builder.Services.AddHostedService<PersistWorker>();
 
 var app = builder.Build();
 
