@@ -27,7 +27,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 builder.Services.AddHttpClient<LmStudioClient>(http =>
 {
     http.BaseAddress = new Uri("http://localhost:1234/v1/");
-    http.Timeout = TimeSpan.FromSeconds(20);
+    http.Timeout = TimeSpan.FromSeconds(400);
 });
 
 // Add services to the container.

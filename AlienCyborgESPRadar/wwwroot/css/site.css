@@ -333,3 +333,14 @@ body.alien .footer {
     padding: 14px 18px;
     display: inline-block;
 }
+
+
+/* Make JSON/action text wrap instead of forcing one long line */
+.terminal-pre {
+    white-space: pre-wrap; /* keep newlines but allow wrapping */
+    overflow-wrap: anywhere; /* break long tokens/urls */
+    word-break: break-word; /* fallback */
+    max-height: 260px; /* your current max */
+    overflow-y: auto; /* scroll vertically */
+    overflow-x: hidden; /* no sideways scroll */
+}

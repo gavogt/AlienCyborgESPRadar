@@ -31,7 +31,7 @@ namespace AlienCyborgESPRadar.Pages
             RecentLogs = await _radarDb.RadarLogs
                 .AsNoTracking()
                 .OrderByDescending(r => r.TimestampUtc)
-                .Take(5)
+                .Take(20)
                 .ToListAsync();
 
         }
@@ -41,7 +41,7 @@ namespace AlienCyborgESPRadar.Pages
             var logs = await _radarDb.RadarLogs
                 .AsNoTracking()
                 .OrderByDescending(r => r.TimestampUtc)
-                .Take(5)
+                .Take(20)
                 .ToListAsync();
 
             _logger?.LogInformation("Analyze: logs count={count}", logs.Count);
