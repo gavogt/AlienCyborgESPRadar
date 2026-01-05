@@ -12,6 +12,12 @@ public sealed class IngestWorker : BackgroundService
     private IConnection? _rabbitConn;
     private IChannel? _rabbitCh;
     private IMqttClient? _mqtt;
+    private ILogger<IngestWorker> _logger;
+
+    public IngestWorker(ILogger<IngestWorker> logger)
+    {
+        _logger = logger;
+    }
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -44,6 +50,8 @@ public sealed class IngestWorker : BackgroundService
             var topic = e.ApplicationMessage.Topic ?? "";
             var payload = e.ApplicationMessage.PayloadSegment.Array is null ? ""
                 : Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+
+            _logger.LogInformation("MQTT IN topic={topic} payload={payload}", topic, payload);
 
             if (topic.EndsWith("status", StringComparison.OrdinalIgnoreCase))
                 return;
@@ -81,7 +89,7 @@ public sealed class IngestWorker : BackgroundService
 
         await _mqtt.ConnectAsync(mqttOptions, ct);
         await _mqtt.SubscribeAsync(new MqttTopicFilterBuilder()
-            .WithTopic("/#")
+            .WithTopic("#")
             .WithAtMostOnceQoS()
             .Build());
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
@@ -16,6 +17,7 @@ public sealed class PersistWorker : BackgroundService
     private IChannel? _ch;
 
     private readonly ILogger<PersistWorker> _logger;
+    private readonly IHubContext<RadarHub> _hub;
 
     private static string? ExtractNodeId(string s) => null;
     private static bool ExtractMotion(string s) => s.Contains("motion", StringComparison.OrdinalIgnoreCase);
@@ -26,10 +28,11 @@ public sealed class PersistWorker : BackgroundService
         PropertyNameCaseInsensitive = true
     };
 
-    public PersistWorker(IServiceScopeFactory scopeFactory, ILogger<PersistWorker> logger)
+    public PersistWorker(IServiceScopeFactory scopeFactory, ILogger<PersistWorker> logger, IHubContext<RadarHub> hub)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
+        _hub = hub;
     }
 
     protected override async Task ExecuteAsync(CancellationToken ct)
@@ -85,6 +88,14 @@ public sealed class PersistWorker : BackgroundService
                 await db.SaveChangesAsync(ct);
 
                 _logger.LogInformation("Persisted radar event from {NodeId} (motion={Motion})", evtObj.NodeId, evtObj.Motion);
+
+                await _hub.Clients.All.SendAsync("radarEvent", new
+                {
+                    nodeId = evtObj.NodeId,
+                    motion = evtObj.Motion,
+                    tsMs = evtObj.TsMs,
+                    timestampUtc = tsUtc
+                }, ct);
 
                 await _ch!.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken: ct);
             }
