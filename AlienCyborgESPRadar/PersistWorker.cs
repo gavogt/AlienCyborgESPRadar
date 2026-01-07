@@ -51,7 +51,7 @@ public sealed class PersistWorker : BackgroundService
         // Ensure exchange/queue exist 
         await _ch.ExchangeDeclareAsync("radar.events", ExchangeType.Topic, durable: true, cancellationToken: ct);
         await _ch.QueueDeclareAsync("radar.persist", durable: true, exclusive: false, autoDelete: false, cancellationToken: ct);
-        await _ch.QueueBindAsync("radar.persist", "radar.events", "motion.*", cancellationToken: ct);
+        await _ch.QueueBindAsync("radar.persist", "radar.events", "motion.#", cancellationToken: ct);
 
         await _ch.BasicQosAsync(prefetchSize: 0, prefetchCount: 25, global: false, cancellationToken: ct);
 
@@ -76,6 +76,8 @@ public sealed class PersistWorker : BackgroundService
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<RadarDbContext>();
 
+                var dbGps = scope.ServiceProvider.GetRequiredService<GpsDbContext>();
+
                 db.RadarLogs.Add(new RadarLog
                 {
                     NodeId = evtObj.NodeId,
@@ -85,7 +87,34 @@ public sealed class PersistWorker : BackgroundService
                     RawJson = rawJson
                 });
 
-                await db.SaveChangesAsync(ct);
+                dbGps.GpsLogs.Add(new GpsLogs
+                {
+                    NodeId = evtObj.NodeId,
+                    TimestampUtc = tsUtc,
+                    GpsPresent = evtObj.GpsPresent,
+                    GpsFix = evtObj.GpsFix,
+                    Latitude = evtObj.Latitude,
+                    Longitude = evtObj.Longitude,
+                    Satellites = evtObj.Satellites,
+                    HdopX100 = evtObj.HdopX100,
+                    FixAgeMs = evtObj.FixAgeMs,
+                    RawJson = rawJson
+                });
+
+                _logger.LogInformation("RadarDb={db} | GpsDb={gpsDb}",
+                db.Database.GetDbConnection().Database,
+                dbGps.Database.GetDbConnection().Database);
+
+                try
+                {
+                    await dbGps.SaveChangesAsync(ct);
+                    await db.SaveChangesAsync(ct);
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "DB update failed. RawJson={RawJson}", rawJson);
+                    throw; 
+                }
 
                 _logger.LogInformation("Persisted radar event from {NodeId} (motion={Motion})", evtObj.NodeId, evtObj.Motion);
 
@@ -94,6 +123,13 @@ public sealed class PersistWorker : BackgroundService
                     nodeId = evtObj.NodeId,
                     motion = evtObj.Motion,
                     tsMs = evtObj.TsMs,
+                    GpsPresent = evtObj.GpsPresent,
+                    GpsFix = evtObj.GpsFix,
+                    Latitude = evtObj.Latitude,
+                    Longitude = evtObj.Longitude,
+                    Sats = evtObj.Satellites,
+                    HdopX100 = evtObj.HdopX100,
+                    FixAgeMs = evtObj.FixAgeMs,
                     timestampUtc = tsUtc
                 }, ct);
 

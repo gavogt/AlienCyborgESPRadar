@@ -27,7 +27,6 @@ public sealed class MqttRadarBridge : BackgroundService
 
     }
 
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var factory = new MqttFactory();

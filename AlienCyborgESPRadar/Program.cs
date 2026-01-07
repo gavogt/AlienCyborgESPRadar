@@ -16,6 +16,10 @@ builder.Services.AddDbContext<RadarDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("RadarConnection"))
     );
 
+builder.Services.AddDbContext<GpsDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("GpsConnection"))
+    );
+
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -53,6 +57,7 @@ builder.Services.AddHostedService<RadarAnalysisWorker>();
 builder.Services.AddHostedService<PersistWorker>();
 
 var app = builder.Build();
+app.Logger.LogInformation("App booted: {AppName}", app.Environment.ApplicationName);
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

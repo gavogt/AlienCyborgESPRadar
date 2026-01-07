@@ -31,6 +31,16 @@
             <div class="mt-2" id="log"></div>
         </div>
 
+        <div class="col-12 mt-3">
+            <div class="card p-4">
+                <h2 class="h5 mb-2">Node Map</h2>
+                <div id="map" style="height: 420px; width: 100%;"></div>
+                <div class="small text-muted mt-2">
+                    © OpenStreetMap contributors
+                </div>
+            </div>
+        </div>
+
         <div class="row g-3 mt-3">
             <div class="col-12 col-lg-6">
                 <div class="card p-4 h-100">
@@ -60,6 +70,9 @@
 </section>
 
 @section Scripts {
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script src="~/js/radar.js"></script>
     <script>

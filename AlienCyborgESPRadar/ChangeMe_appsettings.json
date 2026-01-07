@@ -12,7 +12,8 @@
   },
   "ConnectionStrings": {
     "AuthConnection": "Server=(localdb)\\mssqllocaldb;Database=TheAuthDb;Trusted_Connection=True;MultipleActiveResultSets=true",
-    "RadarConnection": "Server=(localdb)\\mssqllocaldb;Database=TheRadarDb;Trusted_Connection=True;MultipleActiveResultSets=true""
+    "RadarConnection": "Server=(localdb)\\mssqllocaldb;Database=TheRadarDb;Trusted_Connection=True;MultipleActiveResultSets=true",
+    "GpsConnection": "Server=(localdb)\\mssqllocaldb;Database=TheGpsDb;Trusted_Connection=True;MultipleActiveResultSets=true"
 
   },
   "AllowedHosts": "*"

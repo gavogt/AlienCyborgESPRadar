@@ -10,4 +10,25 @@ public sealed class RadarEvent
 
     [JsonPropertyName("tsMs")]
     public string TsMs { get; set; } = "";
+
+    [JsonPropertyName("gpsPresent")]
+    public bool? GpsPresent { get; set; }
+
+    [JsonPropertyName("gpsFix")]
+    public bool? GpsFix { get; set; }
+
+    [JsonPropertyName("lat")]
+    public double? Latitude { get; set; }
+
+    [JsonPropertyName("lon")]
+    public double? Longitude { get; set; }
+
+    [JsonPropertyName("sats")]
+    public int? Satellites { get; set; }
+
+    [JsonPropertyName("hdopX100")]
+    public int? HdopX100 { get; set; }
+
+    [JsonPropertyName("fixAgeMs")]
+    public int? FixAgeMs { get; set; }
 }
