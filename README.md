@@ -2,7 +2,7 @@
 
 A lightweight Razor Pages dashboard and background services for ingesting, processing, and persisting motion events from ESP-based radar nodes. Events flow from MQTT → RabbitMQ → background workers → SQL Server, and live updates are pushed to browser dashboards via SignalR.
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE.txt)
 
 ## Features
 
@@ -10,7 +10,25 @@ A lightweight Razor Pages dashboard and background services for ingesting, proce
 - MQTT bridge (`MqttRadarBridge`) to forward device messages.
 - Ingest worker (`IngestWorker`) that publishes to RabbitMQ exchange `radar.events`.
 - Persist worker (`PersistWorker`) that consumes from `radar.persist` and writes `RadarLog` entries to `RadarDb`.
+- GPS telemetry support: persists `GpsLogs` (lat/lon/sats/HDOP/fixAge) to `GpsDb` and plots latest node positions on the Leaflet map.
 - Optional LLM agents using `LmStudioClient` for analysis (Summarizer, AnomalyDetector, ActionAdvisor).
+
+## Hardware (device/node) requirements
+
+This repo is the server/dashboard side. A typical node publishes JSON events to MQTT and can optionally include GPS fields.
+
+Minimum motion node:
+- ESP8266 (ESP-12F / NodeMCU / Wemos D1 mini) **or** ESP32 **or** Arduino UnoR4
+- Radar motion sensor (examples: RCWL-0516, LD2410C)
+- 3.3V-capable power system (battery/USB/solar)
+
+Optional GPS:
+- u-blox NEO module (examples: NEO-6M / NEO-M8N) wired to UART TX/RX on the ESP
+
+Optional solar/battery (if you’re building a remote node):
+- 1S Li-ion pack (18650) + protection/BMS (as appropriate)
+- Solar charge controller suited to your panel/battery chemistry
+- Buck/boost regulation for stable 3.3V to the ESP + sensors
 
 ## Prerequisites
 
@@ -33,19 +51,23 @@ A lightweight Razor Pages dashboard and background services for ingesting, proce
 
    - `ConnectionStrings:AuthConnection` - used by identity database (`AuthDbContext`).
    - `ConnectionStrings:RadarConnection` - used by radar logs (`RadarDbContext`).
-   - `Mqtt:Host` and `Mqtt:Port` - MQTT broker for `MqttRadarBridge` and `IngestWorker`.
+   - `ConnectionStrings:GpsConnection` - used by GPS logs (`GpsDbContext`).
+   - `Mqtt:Host` and `Mqtt:Port` - MQTT broker for ingestion (see note below).
 
-   Example (already present):
+   Example:
 
    ```json
    {
      "ConnectionStrings": {
        "AuthConnection": "Server=.;Database=AuthDb;Trusted_Connection=True;",
-       "RadarConnection": "Server=.;Database=RadarDb;Trusted_Connection=True;"
+       "RadarConnection": "Server=.;Database=RadarDb;Trusted_Connection=True;",
+       "GpsConnection": "Server=.;Database=GpsDb;Trusted_Connection=True;"
      },
-     "Mqtt": { "Host": "192.168.1.197", "Port": 1883 }
+     "Mqtt": { "Host": "192.168.x.xxx", "Port": 1883 }
    }
    ```
+
+   **Note:** If your `IngestWorker` currently has a hard-coded MQTT host/port, update `IngestWorker.cs` to use your broker, or wire it to read `MqttOptions` from configuration.
 
 3. Ensure EF tools are available (install if needed):
 
@@ -60,10 +82,12 @@ A lightweight Razor Pages dashboard and background services for ingesting, proce
    # If migrations are not present, create them
    dotnet ef migrations add InitialAuth --context AuthDbContext
    dotnet ef migrations add InitialRadar --context RadarDbContext
+   dotnet ef migrations add InitialGps --context GpsDbContext
 
    # Apply migrations
    dotnet ef database update --context AuthDbContext
    dotnet ef database update --context RadarDbContext
+   dotnet ef database update --context GpsDbContext
    ```
 
    Note: Migrations may already be included. If so, only run the `database update` steps.
@@ -76,7 +100,7 @@ A lightweight Razor Pages dashboard and background services for ingesting, proce
 
 6. Run the app
 
-   - Visual Studio 2026: open solution and press F5
+   - Visual Studio: open solution and press F5
    - CLI:
 
      ```bash
@@ -90,17 +114,32 @@ A lightweight Razor Pages dashboard and background services for ingesting, proce
 - HTTP test endpoint (bypasses MQTT):
 
   ```bash
-  curl -X POST https://localhost:5001/api/radar/event \
-    -H "Content-Type: application/json" \
-    -d '{"nodeId":"RADR-uno-1","motion":true,"tsMs":"1734740000123"}'
+  curl -X POST https://localhost:5001/api/radar/event     -H "Content-Type: application/json"     -d '{"nodeId":"RADR-uno-1","motion":true,"tsMs":"1734740000123"}'
   ```
 
   This broadcasts to the SignalR clients but does not persist; `IngestWorker` or publishing to RabbitMQ is required for persistence pipeline.
 
-- Example MQTT payload published by devices (JSON):
+- Example MQTT payload published by devices (motion only):
 
   ```json
   { "nodeId": "RADR-uno-1", "motion": true, "tsMs": "1734740000123" }
+  ```
+
+- Example MQTT payload with GPS:
+
+  ```json
+  {
+    "nodeId": "RADR-uno-1",
+    "motion": true,
+    "tsMs": "1734740000123",
+    "gpsPresent": true,
+    "gpsFix": true,
+    "lat": xx.xxx,
+    "lon": xx.xxx,
+    "sats": 12,
+    "hdopX100": 79,
+    "fixAgeMs": 154
+  }
   ```
 
   `IngestWorker` subscribes to `/#` and forwards non-status messages into RabbitMQ exchange `radar.events` with routing key `motion.{nodeId}`.
@@ -118,8 +157,12 @@ A lightweight Razor Pages dashboard and background services for ingesting, proce
 - No rows in `RadarLogs`:
   - Verify `PersistWorker` is running (hosted services start at app start). Look for `PersistWorker starting` in logs.
   - Confirm messages reach RabbitMQ and that queue `radar.persist` has a consumer. Use RabbitMQ Management UI.
-  - Check `IngestWorker` is registered (it publishes MQTT -> RabbitMQ); if you only compiled earlier code it may have been missing.
-  - Check database connection string and run migrations.
+  - Check `IngestWorker` is registered (it publishes MQTT -> RabbitMQ).
+  - Check database connection string(s) and run migrations.
+
+- No rows in `GpsLogs` / map shows no markers:
+  - Confirm `ConnectionStrings:GpsConnection` is set and migrations were applied for `GpsDbContext`.
+  - Verify incoming JSON includes valid `lat` and `lon` fields (and that your server-side model types match what the device sends).
 
 - LM Studio calls return empty:
   - Replace placeholder model names.
@@ -136,6 +179,7 @@ A lightweight Razor Pages dashboard and background services for ingesting, proce
 
 ```
   dotnet ef database update --context RadarDbContext
+  dotnet ef database update --context GpsDbContext
   dotnet ef database update --context AuthDbContext
 ```
 
