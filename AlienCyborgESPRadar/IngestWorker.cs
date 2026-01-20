@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using MQTTnet;
 using MQTTnet.Client;
 using RabbitMQ.Client;
@@ -11,8 +12,9 @@ public sealed class IngestWorker : BackgroundService
 {
     private IConnection? _rabbitConn;
     private IChannel? _rabbitCh;
-    private IMqttClient? _mqtt;
+    private IMqttClient? _mqttClient;
     private ILogger<IngestWorker> _logger;
+    private readonly MqttOptions _mqttOptions = new();
 
     public IngestWorker(ILogger<IngestWorker> logger)
     {
@@ -43,9 +45,9 @@ public sealed class IngestWorker : BackgroundService
 
         // MQTT hookup (publish example)
         var mqttFactory = new MqttFactory();
-        _mqtt = mqttFactory.CreateMqttClient();
+        _mqttClient = mqttFactory.CreateMqttClient();
 
-        _mqtt.ApplicationMessageReceivedAsync += async e =>
+        _mqttClient.ApplicationMessageReceivedAsync += async e =>
         {
             var topic = e.ApplicationMessage.Topic ?? "";
             var payload = e.ApplicationMessage.PayloadSegment.Array is null ? ""
@@ -84,12 +86,12 @@ public sealed class IngestWorker : BackgroundService
         };
 
         var mqttOptions = new MqttClientOptionsBuilder()
-            .WithTcpServer("192.168.1.197", 1883)
+            .WithTcpServer(_mqttOptions.Host, _mqttOptions.Port)
             .Build();
 
-        await _mqtt.ConnectAsync(mqttOptions, ct);
-        await _mqtt.SubscribeAsync(new MqttTopicFilterBuilder()
-            .WithTopic("#")
+        await _mqttClient.ConnectAsync(mqttOptions, ct);
+        await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder()
+            .WithTopic(_mqttOptions.Topic)
             .WithAtMostOnceQoS()
             .Build());
 
