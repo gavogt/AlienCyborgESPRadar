@@ -44,7 +44,8 @@ public class SignUpModel : PageModel
         if (result.Succeeded)
         {
             await _signInManager.SignInAsync(user, isPersistent: false);
-            return RedirectToPage("/DashboardModel");
+            // Redirect to the Dashboard Razor Page
+            return RedirectToPage("/Dashboard");
         }
 
         foreach (var err in result.Errors)
