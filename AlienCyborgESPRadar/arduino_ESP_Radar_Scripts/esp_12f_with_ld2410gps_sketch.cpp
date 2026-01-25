@@ -1,45 +1,57 @@
 ﻿#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
 #include <PubSubClient.h>
-#include <SoftwareSerial.h>
 #include <TinyGPSPlus.h>
+#include <SoftwareSerial.h>
 
 // ====== WIFI ======
 const char* WIFI_SSID = "YOUR_WIFI_NAME";
 const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
 
-// ====== MQTT ======
-const char* MQTT_HOST = "192.168.1.197";
+// ====== MQTT (Mosquitto) ======
+const char* MQTT_HOST = "192.168.x.xxx";
 const int   MQTT_PORT = 1883;
+const char* MQTT_USER = "";
+const char* MQTT_PASS = "";
 
-// ====== TOPICS / NODE ======
+// ====== NODE / TOPICS ======
 const char* NODE_ID = "RADR-esp-1";
-const char* TOPIC_EVT = "/RADR-esp-1";
-const char* TOPIC_STAT = "/RADR-esp-1/status";
+const char* TOPIC_EVENT = "/RADR-esp-1";
+const char* TOPIC_STAT = "/RADR-esp-1/status"; // LWT/status
 
-// ====== LD2410C OUT ======
-const int RADAR_OUT_PIN = D2; // GPIO4
+// ====== HARDWARE ======
+// LD2410C OUT -> D2 (GPIO4). HIGH = presence detected, LOW = none.  (we call it "motion")
+const int RADAR_PIN = D2;
+const unsigned long PUBLISH_INTERVAL_MS = 3000;
 
-// ====== GPS ======
-static const uint32_t GPS_BAUD = 9600;
-const int GPS_RX_PIN = D5; // ESP receives from GPS TX
-const int GPS_TX_PIN = D6; // optional
+// ====== GPS (NEO-6M) ======
+static const uint32_t GPS_BAUD = 9600;                 // common default
+static const uint32_t GPS_PRESENT_TIMEOUT_MS = 5000;   // no bytes for 5s => "not connected"
+static const uint32_t GPS_FIX_STALE_MS = 15000;        // fix older than this => treat as stale
 
+// Put GPS on SoftwareSerial so Serial Monitor stays usable.
+const int GPS_RX_PIN = D5; // ESP RX  <- GPS TX
+const int GPS_TX_PIN = D6; // ESP TX  -> GPS RX (optional)
 SoftwareSerial gpsSer(GPS_RX_PIN, GPS_TX_PIN);
+
 TinyGPSPlus gps;
+unsigned long gpsLastByteAt = 0;
+bool gpsPresent = false;
+
+// ====== NTP ======
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 0 /*UTC*/, 60UL * 60UL * 1000UL);
 
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
 
-bool lastPresence = false;
-unsigned long lastHeartbeatAt = 0;
-unsigned long lastPeriodicAt = 0;
-const unsigned long PUBLISH_INTERVAL_MS = 3000;
+bool ntpReady = false;
+unsigned long lastPublishAt = 0;
 
-unsigned long gpsLastByteAt = 0;
-bool gpsPresent = false;
-static const unsigned long GPS_PRESENT_TIMEOUT_MS = 5000;
-
+// ---------- helpers ----------
 static inline void safeDelay(unsigned long ms) {
+    // keep WiFi/MQTT fed during delays
     unsigned long start = millis();
     while (millis() - start < ms) {
         mqtt.loop();
@@ -51,7 +63,7 @@ static inline void safeDelay(unsigned long ms) {
 void connectWiFi() {
     if (WiFi.status() == WL_CONNECTED) return;
 
-    Serial.print("WiFi connecting to ");
+    Serial.print("WiFi connecting to: ");
     Serial.println(WIFI_SSID);
 
     WiFi.mode(WIFI_STA);
@@ -62,19 +74,44 @@ void connectWiFi() {
     unsigned long start = millis();
     while (WiFi.status() != WL_CONNECTED) {
         if (millis() - start > 20000) {
-            Serial.println("WiFi timeout, retry...");
+            Serial.println("\nWiFi timeout, retrying...");
             WiFi.disconnect();
             safeDelay(250);
             WiFi.begin(WIFI_SSID, WIFI_PASS);
             start = millis();
         }
-        Serial.print(".");
         safeDelay(250);
+        Serial.print(".");
     }
 
-    Serial.println("\nWiFi connected");
+    Serial.println("\nWiFi connected!");
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
+}
+
+void ensureNtp() {
+    if (ntpReady) {
+        timeClient.update();
+        return;
+    }
+
+    Serial.println("Starting NTP...");
+    timeClient.begin();
+
+    for (int i = 0; i < 10; i++) {
+        if (timeClient.forceUpdate()) {
+            uint32_t s = timeClient.getEpochTime();
+            if (s > 1700000000UL) {
+                ntpReady = true;
+                Serial.print("NTP synced. EpochSec=");
+                Serial.println(s);
+                return;
+            }
+        }
+        safeDelay(300);
+    }
+
+    Serial.println("NTP not ready yet (will retry).");
 }
 
 void connectMQTT() {
@@ -84,131 +121,162 @@ void connectMQTT() {
     mqtt.setBufferSize(512);
 
     while (!mqtt.connected()) {
-        Serial.print("MQTT connecting... ");
+        Serial.print("MQTT connecting to ");
+        Serial.print(MQTT_HOST);
+        Serial.print(":");
+        Serial.print(MQTT_PORT);
+        Serial.print(" ... ");
+
         String clientId = String("esp8266-") + NODE_ID + "-" + String(ESP.getChipId(), HEX);
 
-        bool ok = mqtt.connect(clientId.c_str(), TOPIC_STAT, 1, true, "offline");
-        if (ok) {
-            Serial.println("OK");
-            mqtt.publish(TOPIC_STAT, "online", true);
+        bool ok;
+        if (strlen(MQTT_USER) > 0) {
+            ok = mqtt.connect(clientId.c_str(),
+                MQTT_USER, MQTT_PASS,
+                TOPIC_STAT, 1, true, "offline");
         }
         else {
-            Serial.print("fail rc=");
+            ok = mqtt.connect(clientId.c_str(),
+                TOPIC_STAT, 1, true, "offline");
+        }
+
+        if (ok) {
+            Serial.println("connected");
+            mqtt.publish(TOPIC_STAT, "online", true);
+            Serial.print("Status: ");
+            Serial.print(TOPIC_STAT);
+            Serial.println(" -> online");
+        }
+        else {
+            Serial.print("failed rc=");
             Serial.println(mqtt.state());
             safeDelay(1500);
         }
     }
 }
 
+// Read GPS bytes from SoftwareSerial (D5/D6).
 void readGps() {
     bool gotAny = false;
+
     while (gpsSer.available() > 0) {
+        char c = (char)gpsSer.read();
         gotAny = true;
-        gps.encode((char)gpsSer.read());
+        gps.encode(c);
     }
+
     if (gotAny) {
         gpsLastByteAt = millis();
         gpsPresent = true;
     }
-    else if (gpsPresent && (millis() - gpsLastByteAt > GPS_PRESENT_TIMEOUT_MS)) {
-        gpsPresent = false;
+    else {
+        if (gpsPresent && (millis() - gpsLastByteAt > GPS_PRESENT_TIMEOUT_MS)) {
+            gpsPresent = false;
+        }
     }
 }
 
-bool gpsHasFix() {
-    return gps.location.isValid() && gps.location.age() < 15000;
+bool gpsHasFreshFix() {
+    if (!gps.location.isValid()) return false;
+    if (gps.location.age() > GPS_FIX_STALE_MS) return false;
+    return true;
 }
 
-void publishFrame(bool presence) {
-    const bool fix = gpsHasFix();
-    unsigned long sats = gps.satellites.isValid() ? gps.satellites.value() : 0;
-    unsigned long hdop = gps.hdop.isValid() ? gps.hdop.value() : 0;
+void publishRadarState() {
+    // LD2410C OUT: HIGH when presence detected, LOW when none (we map this to "motion")
+    bool motion = (digitalRead(RADAR_PIN) == HIGH);
+
+    uint32_t tsSec = ntpReady ? timeClient.getEpochTime() : 0;
+    uint16_t msPart = (uint16_t)(millis() % 1000);
+
+    char tsMsStr[32];
+    snprintf(tsMsStr, sizeof(tsMsStr), "%lu%03u", (unsigned long)tsSec, (unsigned)msPart);
+
+    // GPS fields
+    const bool fix = gpsHasFreshFix();
+    double lat = fix ? gps.location.lat() : 0.0;
+    double lon = fix ? gps.location.lng() : 0.0;
+    uint32_t sats = gps.satellites.isValid() ? gps.satellites.value() : 0;
+    uint32_t hdop = gps.hdop.isValid() ? gps.hdop.value() : 0; // TinyGPS++ gives HDOP * 100
+    uint32_t ageMs = gps.location.isValid() ? gps.location.age() : 0;
 
     char payload[420];
     snprintf(payload, sizeof(payload),
         "{"
         "\"nodeId\":\"%s\","
-        "\"tsMs\":%lu,"
-        "\"presence\":%s,"
+        "\"motion\":%s,"
+        "\"tsMs\":\"%s\","
         "\"gpsPresent\":%s,"
         "\"gpsFix\":%s,"
         "\"lat\":%s,"
         "\"lon\":%s,"
         "\"sats\":%lu,"
-        "\"hdopX100\":%lu"
+        "\"hdopX100\":%lu,"
+        "\"fixAgeMs\":%lu"
         "}",
         NODE_ID,
-        (unsigned long)millis(),
-        presence ? "true" : "false",
+        motion ? "true" : "false",
+        tsMsStr,
         gpsPresent ? "true" : "false",
         fix ? "true" : "false",
-        fix ? String(gps.location.lat(), 6).c_str() : "null",
-        fix ? String(gps.location.lng(), 6).c_str() : "null",
-        sats,
-        hdop
+        fix ? String(lat, 6).c_str() : "null",
+        fix ? String(lon, 6).c_str() : "null",
+        (unsigned long)sats,
+        (unsigned long)hdop,
+        (unsigned long)ageMs
     );
 
-    mqtt.publish(TOPIC_EVT, payload, false);
+    if (!gpsPresent) {
+        Serial.println("WARN: GPS not detected (no serial bytes). Check wiring: GPS TX -> D5.");
+    }
+    else if (!fix) {
+        Serial.println("INFO: GPS present but no fresh fix yet (may need sky view).");
+    }
 
-    // Serial Monitor visibility
-    Serial.print("PUB presence=");
-    Serial.print(presence ? "true" : "false");
-    Serial.print(" gpsPresent=");
-    Serial.print(gpsPresent ? "true" : "false");
-    Serial.print(" fix=");
-    Serial.print(fix ? "true" : "false");
-    Serial.print(" sats=");
-    Serial.print(sats);
-    Serial.print(" hdopX100=");
-    Serial.println(hdop);
+    Serial.print("RADAR=");
+    Serial.print(motion ? "MOTION" : "idle");
+    Serial.print(" | PUB ");
+    Serial.print(TOPIC_EVENT);
+    Serial.print(" ");
+    Serial.println(payload);
+
+    bool ok = mqtt.publish(TOPIC_EVENT, payload, false);
+    Serial.println(ok ? "Publish OK" : "Publish FAILED");
 }
 
 void setup() {
+    // Serial Monitor works at 115200 now (GPS moved off UART0)
     Serial.begin(115200);
-    delay(300);
-    Serial.println("\nBoot OK (LD2410 OUT + GPS + MQTT periodic)");
+    delay(200);
 
-    pinMode(RADAR_OUT_PIN, INPUT);
+    pinMode(RADAR_PIN, INPUT);
+
+    // Start GPS serial
     gpsSer.begin(GPS_BAUD);
 
+    gpsLastByteAt = millis();
+    gpsPresent = false;
+
     connectWiFi();
+    ensureNtp();
     connectMQTT();
 
-    lastPresence = (digitalRead(RADAR_OUT_PIN) == HIGH);
-    publishFrame(lastPresence);
-    lastPeriodicAt = millis();
+    Serial.println("Ready. Publishing every 3 seconds.");
 }
 
 void loop() {
     connectWiFi();
+    ensureNtp();
     connectMQTT();
     mqtt.loop();
 
     readGps();
 
-    bool presence = (digitalRead(RADAR_OUT_PIN) == HIGH);
-
-    // Publish immediately on change
-    if (presence != lastPresence) {
-        safeDelay(30);
-        presence = (digitalRead(RADAR_OUT_PIN) == HIGH);
-        if (presence != lastPresence) {
-            lastPresence = presence;
-            publishFrame(presence);
-        }
+    unsigned long now = millis();
+    if (now - lastPublishAt >= PUBLISH_INTERVAL_MS) {
+        lastPublishAt = now;
+        publishRadarState();
     }
 
-    // Publish every 3 seconds no matter what
-    if (millis() - lastPeriodicAt >= PUBLISH_INTERVAL_MS) {
-        lastPeriodicAt = millis();
-        publishFrame(presence);
-    }
-
-    // Heartbeat every 30s
-    if (millis() - lastHeartbeatAt > 30000UL) {
-        lastHeartbeatAt = millis();
-        mqtt.publish(TOPIC_STAT, "online", true);
-    }
-
-    delay(5);
+    delay(10);
 }
