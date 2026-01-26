@@ -78,6 +78,8 @@ public sealed class PersistWorker : BackgroundService
 
                 var dbGps = scope.ServiceProvider.GetRequiredService<GpsDbContext>();
 
+                var dbBattery = scope.ServiceProvider.GetRequiredService<BatteryDbContext>();
+
                 db.RadarLogs.Add(new RadarLog
                 {
                     NodeId = evtObj.NodeId,
@@ -99,6 +101,16 @@ public sealed class PersistWorker : BackgroundService
                     HdopX100 = evtObj.HdopX100,
                     FixAgeMs = evtObj.FixAgeMs,
                     RawJson = rawJson
+                });
+
+                dbBattery.BatteryLogs.Add(new BatteryLog
+                {
+                    NodeId = evtObj.NodeId,
+                    TimestampUtc = tsUtc,
+                    BatteryOk = evtObj.BatteryOk,
+                    BatteryVoltage = evtObj.BatteryVoltage,
+                    BatteryPercent = evtObj.BatteryPercent,
+                    Max17048ChipId = evtObj.Max17048ChipId
                 });
 
                 _logger.LogInformation("RadarDb={db} | GpsDb={gpsDb}",
