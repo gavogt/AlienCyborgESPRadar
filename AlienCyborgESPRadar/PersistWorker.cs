@@ -130,7 +130,12 @@ public sealed class PersistWorker : BackgroundService
                     Sats = evtObj.Satellites,
                     HdopX100 = evtObj.HdopX100,
                     FixAgeMs = evtObj.FixAgeMs,
-                    timestampUtc = tsUtc
+                    timestampUtc = tsUtc,
+                    BattOk = evtObj.BattOk,
+                    BattV = evtObj.BattV,
+                    BattPct = evtObj.BattPct,
+                    Max17048ChipId = evtObj.Max17048ChipId
+
                 }, ct);
 
                 await _ch!.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken: ct);
