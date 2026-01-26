@@ -16,14 +16,6 @@ builder.Services.AddDbContext<RadarDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("RadarConnection"))
     );
 
-builder.Services.AddDbContext<GpsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("GpsConnection"))
-    );
-
-builder.Services.AddDbContext<BatteryDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("BatteryConnection"))
-    );
-
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;

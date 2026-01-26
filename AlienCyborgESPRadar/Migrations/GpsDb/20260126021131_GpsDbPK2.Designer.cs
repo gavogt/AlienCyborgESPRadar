@@ -4,16 +4,19 @@ using AlienCyborgESPRadar;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace AlienCyborgESPRadar.Migrations.RadarDb
+namespace AlienCyborgESPRadar.Migrations.GpsDb
 {
-    [DbContext(typeof(RadarDbContext))]
-    partial class RadarDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(GpsDbContext))]
+    [Migration("20260126021131_GpsDbPK2")]
+    partial class GpsDbPK2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,8 +27,11 @@ namespace AlienCyborgESPRadar.Migrations.RadarDb
 
             modelBuilder.Entity("AlienCyborgESPRadar.BatteryLog", b =>
                 {
-                    b.Property<long>("RadarLogId")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<bool?>("BatteryOk")
                         .HasColumnType("bit");
@@ -43,18 +49,28 @@ namespace AlienCyborgESPRadar.Migrations.RadarDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("RadarLogId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("TimestampUtc")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("RadarLogId");
+                    b.HasKey("Id");
 
-                    b.ToTable("BatteryLogs");
+                    b.HasIndex("RadarLogId")
+                        .IsUnique()
+                        .HasFilter("[RadarLogId] IS NOT NULL");
+
+                    b.ToTable("BatteryLog");
                 });
 
             modelBuilder.Entity("AlienCyborgESPRadar.GpsLogs", b =>
                 {
-                    b.Property<long>("RadarLogId")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<int?>("FixAgeMs")
                         .HasColumnType("int");
@@ -78,6 +94,9 @@ namespace AlienCyborgESPRadar.Migrations.RadarDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("RadarLogId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("RawJson")
                         .HasColumnType("nvarchar(max)");
 
@@ -87,7 +106,11 @@ namespace AlienCyborgESPRadar.Migrations.RadarDb
                     b.Property<DateTimeOffset>("TimestampUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.HasKey("RadarLogId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("RadarLogId")
+                        .IsUnique()
+                        .HasFilter("[RadarLogId] IS NOT NULL");
 
                     b.ToTable("GpsLogs");
                 });
@@ -119,16 +142,14 @@ namespace AlienCyborgESPRadar.Migrations.RadarDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("RadarLogs");
+                    b.ToTable("RadarLog");
                 });
 
             modelBuilder.Entity("AlienCyborgESPRadar.BatteryLog", b =>
                 {
                     b.HasOne("AlienCyborgESPRadar.RadarLog", "RadarLog")
                         .WithOne("BatteryLog")
-                        .HasForeignKey("AlienCyborgESPRadar.BatteryLog", "RadarLogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AlienCyborgESPRadar.BatteryLog", "RadarLogId");
 
                     b.Navigation("RadarLog");
                 });
@@ -137,9 +158,7 @@ namespace AlienCyborgESPRadar.Migrations.RadarDb
                 {
                     b.HasOne("AlienCyborgESPRadar.RadarLog", "RadarLog")
                         .WithOne("GpsLog")
-                        .HasForeignKey("AlienCyborgESPRadar.GpsLogs", "RadarLogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AlienCyborgESPRadar.GpsLogs", "RadarLogId");
 
                     b.Navigation("RadarLog");
                 });

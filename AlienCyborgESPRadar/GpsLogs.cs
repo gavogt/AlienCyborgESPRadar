@@ -1,8 +1,17 @@
 ﻿namespace AlienCyborgESPRadar
 {
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+
     public class GpsLogs
     {
-        public long Id { get; set; }
+        // Use RadarLogId as the primary key and foreign key to RadarLog.Id
+        [Key]
+        [ForeignKey("RadarLog")]
+        public long RadarLogId { get; set; }
+
+        public RadarLog RadarLog { get; set; } = null!;
+
         public string NodeId { get; set; } = string.Empty;
         public DateTimeOffset TimestampUtc { get; set; }
         public bool? GpsFix { get; set; }

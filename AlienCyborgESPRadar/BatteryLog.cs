@@ -1,8 +1,16 @@
 ﻿namespace AlienCyborgESPRadar
 {
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+
     public sealed class BatteryLog
     {
-        public long Id { get; set; }
+        // Use RadarLogId as primary key and FK to RadarLog.Id
+        [Key]
+        [ForeignKey("RadarLog")]
+        public long RadarLogId { get; set; }
+
+        public RadarLog RadarLog { get; set; } = null!;
 
         public string NodeId { get; set; } = string.Empty;  
 

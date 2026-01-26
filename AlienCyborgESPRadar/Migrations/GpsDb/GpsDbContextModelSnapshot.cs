@@ -22,6 +22,45 @@ namespace AlienCyborgESPRadar.Migrations.GpsDb
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AlienCyborgESPRadar.BatteryLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool?>("BatteryOk")
+                        .HasColumnType("bit");
+
+                    b.Property<double?>("BatteryPercent")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("BatteryVoltage")
+                        .HasColumnType("float");
+
+                    b.Property<byte?>("Max17048ChipId")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("NodeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("RadarLogId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("TimestampUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RadarLogId")
+                        .IsUnique()
+                        .HasFilter("[RadarLogId] IS NOT NULL");
+
+                    b.ToTable("BatteryLog");
+                });
+
             modelBuilder.Entity("AlienCyborgESPRadar.GpsLogs", b =>
                 {
                     b.Property<long>("Id")
@@ -30,8 +69,8 @@ namespace AlienCyborgESPRadar.Migrations.GpsDb
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("FixAgeMs")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("FixAgeMs")
+                        .HasColumnType("int");
 
                     b.Property<bool?>("GpsFix")
                         .HasColumnType("bit");
@@ -39,31 +78,93 @@ namespace AlienCyborgESPRadar.Migrations.GpsDb
                     b.Property<bool?>("GpsPresent")
                         .HasColumnType("bit");
 
-                    b.Property<string>("HdopX100")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("HdopX100")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Latitude")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
 
-                    b.Property<string>("Longitude")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("NodeId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("RadarLogId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("RawJson")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Satellites")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("Satellites")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("TimestampUtc")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RadarLogId")
+                        .IsUnique()
+                        .HasFilter("[RadarLogId] IS NOT NULL");
+
                     b.ToTable("GpsLogs");
+                });
+
+            modelBuilder.Entity("AlienCyborgESPRadar.RadarLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Motion")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NodeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RawJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("TimestampUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("TsMs")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RadarLog");
+                });
+
+            modelBuilder.Entity("AlienCyborgESPRadar.BatteryLog", b =>
+                {
+                    b.HasOne("AlienCyborgESPRadar.RadarLog", "RadarLog")
+                        .WithOne("BatteryLog")
+                        .HasForeignKey("AlienCyborgESPRadar.BatteryLog", "RadarLogId");
+
+                    b.Navigation("RadarLog");
+                });
+
+            modelBuilder.Entity("AlienCyborgESPRadar.GpsLogs", b =>
+                {
+                    b.HasOne("AlienCyborgESPRadar.RadarLog", "RadarLog")
+                        .WithOne("GpsLog")
+                        .HasForeignKey("AlienCyborgESPRadar.GpsLogs", "RadarLogId");
+
+                    b.Navigation("RadarLog");
+                });
+
+            modelBuilder.Entity("AlienCyborgESPRadar.RadarLog", b =>
+                {
+                    b.Navigation("BatteryLog");
+
+                    b.Navigation("GpsLog");
                 });
 #pragma warning restore 612, 618
         }

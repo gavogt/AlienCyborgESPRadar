@@ -17,6 +17,7 @@ namespace AlienCyborgESPRadar.Migrations.BatteryDb
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    RadarLogId = table.Column<long>(type: "bigint", nullable: true),
                     NodeId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TimestampUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BatteryOk = table.Column<bool>(type: "bit", nullable: true),

@@ -9,5 +9,9 @@
         public long? TsMs { get; set; }
         public DateTimeOffset TimestampUtc { get; set; }
         public string RawJson { get; set; } = string.Empty;
+
+        // Navigation properties for related telemetry
+        public GpsLogs? GpsLog { get; set; }
+        public BatteryLog? BatteryLog { get; set; }
     }
 }

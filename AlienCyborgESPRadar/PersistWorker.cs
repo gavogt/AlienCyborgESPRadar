@@ -76,20 +76,17 @@ public sealed class PersistWorker : BackgroundService
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<RadarDbContext>();
 
-                var dbGps = scope.ServiceProvider.GetRequiredService<GpsDbContext>();
-
-                var dbBattery = scope.ServiceProvider.GetRequiredService<BatteryDbContext>();
-
-                db.RadarLogs.Add(new RadarLog
+                var radarLog = new RadarLog
                 {
                     NodeId = evtObj.NodeId,
                     Motion = evtObj.Motion,
                     TsMs = tsMs,
                     TimestampUtc = tsUtc,
                     RawJson = rawJson
-                });
+                };
 
-                dbGps.GpsLogs.Add(new GpsLogs
+                // Create related telemetry objects (they'll be added after RadarLog has an Id)
+                var gpsLog = new GpsLogs
                 {
                     NodeId = evtObj.NodeId,
                     TimestampUtc = tsUtc,
@@ -101,9 +98,9 @@ public sealed class PersistWorker : BackgroundService
                     HdopX100 = evtObj.HdopX100,
                     FixAgeMs = evtObj.FixAgeMs,
                     RawJson = rawJson
-                });
+                };
 
-                dbBattery.BatteryLogs.Add(new BatteryLog
+                var batteryLog = new BatteryLog
                 {
                     NodeId = evtObj.NodeId,
                     TimestampUtc = tsUtc,
@@ -111,22 +108,30 @@ public sealed class PersistWorker : BackgroundService
                     BatteryVoltage = evtObj.BatteryVoltage,
                     BatteryPercent = evtObj.BatteryPercent,
                     Max17048ChipId = evtObj.Max17048ChipId
-                });
+                };
 
-                _logger.LogInformation("RadarDb={db} | GpsDb={gpsDb}",
-                db.Database.GetDbConnection().Database,
-                dbGps.Database.GetDbConnection().Database);
+                db.RadarLogs.Add(radarLog);
+
+                _logger.LogInformation("RadarDb={db}", db.Database.GetDbConnection().Database);
 
                 try
                 {
-                    await dbGps.SaveChangesAsync(ct);
+                    // Save RadarLog first to obtain its generated Id (shared PK will use this id)
                     await db.SaveChangesAsync(ct);
-                    await dbBattery.SaveChangesAsync(ct);
+
+                    // Associate telemetry rows using the RadarLog PK
+                    gpsLog.RadarLogId = radarLog.Id;
+                    batteryLog.RadarLogId = radarLog.Id;
+
+                    db.GpsLogs.Add(gpsLog);
+                    db.BatteryLogs.Add(batteryLog);
+
+                    await db.SaveChangesAsync(ct);
                 }
                 catch (DbUpdateException ex)
                 {
                     _logger.LogError(ex, "DB update failed. RawJson={RawJson}", rawJson);
-                    throw; 
+                    throw;
                 }
 
                 _logger.LogInformation("Persisted radar event from {NodeId} (motion={Motion})", evtObj.NodeId, evtObj.Motion);
