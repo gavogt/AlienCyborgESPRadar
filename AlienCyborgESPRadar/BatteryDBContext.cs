@@ -2,12 +2,12 @@
 
 namespace AlienCyborgESPRadar
 {
-    public sealed class BatteryDBContext : DbContext
+    public sealed class BatteryDbContext : DbContext
     {
-        public BatteryDBContext(DbContextOptions<BatteryDBContext> options) : base(options)
+        public BatteryDbContext(DbContextOptions<BatteryDbContext> options) : base(options)
         {
         }
 
-        public DbSet<BatteryLog> BatteryLogs { get; set; } = null!;
+        public DbSet<BatteryLog> BatteryLogs => Set<BatteryLog>();
     }
 }
