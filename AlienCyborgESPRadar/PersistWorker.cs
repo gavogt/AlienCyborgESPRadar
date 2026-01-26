@@ -131,9 +131,9 @@ public sealed class PersistWorker : BackgroundService
                     HdopX100 = evtObj.HdopX100,
                     FixAgeMs = evtObj.FixAgeMs,
                     timestampUtc = tsUtc,
-                    BattOk = evtObj.BattOk,
-                    BattV = evtObj.BattV,
-                    BattPct = evtObj.BattPct,
+                    BatteryOk = evtObj.BatteryOk,
+                    BatteryVoltage = evtObj.BatteryVoltage,
+                    BatteryPercent = evtObj.BatteryPercent,
                     Max17048ChipId = evtObj.Max17048ChipId
 
                 }, ct);

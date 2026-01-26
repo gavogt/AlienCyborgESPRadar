@@ -33,14 +33,14 @@ public sealed class RadarEvent
     public int? FixAgeMs { get; set; }
 
     [JsonPropertyName("battOk")]
-    public bool? BattOk { get; set; }
+    public bool? BatteryOk { get; set; }
 
     [JsonPropertyName("battV")]
-    public double? BattV { get; set; }
+    public double? BatteryVoltage { get; set; }
 
     [JsonPropertyName("battPct")]
-    public int? BattPct { get; set; }
+    public double? BatteryPercent { get; set; }
 
     [JsonPropertyName("max17048ChipId")]
-    public string? Max17048ChipId { get; set; }
+    public byte? Max17048ChipId { get; set; }
 }
