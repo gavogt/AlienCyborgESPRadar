@@ -121,6 +121,7 @@ public sealed class PersistWorker : BackgroundService
                 {
                     await dbGps.SaveChangesAsync(ct);
                     await db.SaveChangesAsync(ct);
+                    await dbBattery.SaveChangesAsync(ct);
                 }
                 catch (DbUpdateException ex)
                 {
