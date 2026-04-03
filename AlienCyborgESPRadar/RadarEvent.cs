@@ -43,4 +43,9 @@ public sealed class RadarEvent
 
     [JsonPropertyName("max17048ChipId")]
     public byte? Max17048ChipId { get; set; }
+
+    // Infrared motion sensor (PIR) value, if present.
+    // This is a boolean indicating whether motion was detected by the PIR sensor.
+    [JsonPropertyName("pir")]
+    public bool? Pir { get; set; }
 }
