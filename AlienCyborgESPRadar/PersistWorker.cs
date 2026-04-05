@@ -39,14 +39,31 @@ public sealed class PersistWorker : BackgroundService
     {
         _logger.LogInformation("PersistWorker starting");
 
-        var factory = new ConnectionFactory
+        var factory = new ConnectionFactory { HostName = "localhost" };
+
+        // Try to connect to RabbitMQ with retries so the app can start even if the broker
+        // isn't ready immediately (e.g. when using docker-compose). Do not let the exception
+        // bubble and crash the host; instead retry until cancellation is requested.
+        while (!ct.IsCancellationRequested)
         {
-            HostName = "localhost",
+            try
+            {
+                _conn = await factory.CreateConnectionAsync(ct);
+                _ch = await _conn.CreateChannelAsync(options: null, cancellationToken: ct);
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to connect to RabbitMQ, retrying in 2s...");
+                try { await Task.Delay(TimeSpan.FromSeconds(2), ct); } catch { /* ignore */ }
+            }
+        }
 
-        };
-
-        _conn = await factory.CreateConnectionAsync(ct);
-        _ch = await _conn.CreateChannelAsync(options: null, cancellationToken: ct);
+        if (_conn is null || _ch is null)
+        {
+            _logger.LogWarning("RabbitMQ connection was not established before cancellation.");
+            return;
+        }
 
         // Ensure exchange/queue exist 
         await _ch.ExchangeDeclareAsync("radar.events", ExchangeType.Topic, durable: true, cancellationToken: ct);

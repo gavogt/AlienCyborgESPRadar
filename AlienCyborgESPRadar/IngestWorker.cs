@@ -31,17 +31,37 @@ public sealed class IngestWorker : BackgroundService
     {
         var factory = new ConnectionFactory { HostName = "localhost" };
 
-        _rabbitConn = await factory.CreateConnectionAsync(ct);
-        _rabbitCh = await _rabbitConn.CreateChannelAsync(
-            options: null,
-            cancellationToken: ct
-            );
+        // Retry connecting to RabbitMQ so the worker survives broker startup delays
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                _rabbitConn = await factory.CreateConnectionAsync(ct);
+                _rabbitCh = await _rabbitConn.CreateChannelAsync(
+                    options: null,
+                    cancellationToken: ct
+                    );
 
-        await _rabbitCh.ExchangeDeclareAsync("radar.events", ExchangeType.Topic, durable: true, cancellationToken: ct);
+                await _rabbitCh.ExchangeDeclareAsync("radar.events", ExchangeType.Topic, durable: true, cancellationToken: ct);
 
-        // create/bind queues here 
-        await _rabbitCh.QueueDeclareAsync("radar.persist", durable: true, exclusive: false, autoDelete: false, cancellationToken: ct);
-        await _rabbitCh.QueueBindAsync("radar.persist", "radar.events", "motion.*", cancellationToken: ct);
+                // create/bind queues here 
+                await _rabbitCh.QueueDeclareAsync("radar.persist", durable: true, exclusive: false, autoDelete: false, cancellationToken: ct);
+                await _rabbitCh.QueueBindAsync("radar.persist", "radar.events", "motion.*", cancellationToken: ct);
+
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to connect to RabbitMQ (ingest), retrying in 2s...");
+                try { await Task.Delay(TimeSpan.FromSeconds(2), ct); } catch { /* ignore */ }
+            }
+        }
+
+        if (_rabbitConn is null || _rabbitCh is null)
+        {
+            _logger.LogWarning("RabbitMQ ingest connection was not established before cancellation.");
+            return;
+        }
 
         // MQTT hookup (publish example)
         var mqttFactory = new MqttFactory();
