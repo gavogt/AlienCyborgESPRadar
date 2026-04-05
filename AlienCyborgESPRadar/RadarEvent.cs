@@ -48,4 +48,5 @@ public sealed class RadarEvent
     // This is a boolean indicating whether motion was detected by the PIR sensor.
     [JsonPropertyName("pir")]
     public bool? Pir { get; set; }
+
 }

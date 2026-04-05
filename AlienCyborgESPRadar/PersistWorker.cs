@@ -80,6 +80,7 @@ public sealed class PersistWorker : BackgroundService
                 {
                     NodeId = evtObj.NodeId,
                     Motion = evtObj.Motion,
+                    Pir = evtObj.Pir,
                     TsMs = tsMs,
                     TimestampUtc = tsUtc,
                     RawJson = rawJson
